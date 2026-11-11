@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>今日知识 · Data Engineering Zoomcamp</title>
+<style>
+  :root{
+    --bg:#f4f5f7; --card:#ffffff; --panel:#ffffff; --line:#e3e6ec; --line-soft:#eef0f4;
+    --text:#14171c; --muted:#657080; --muted-2:#8b94a2;
+    --accent:#2563eb; --accent-weak:#eaf0ff; --accent-line:#c9d8ff;
+    --ok:#0f9d58; --ok-weak:#e8f7ef; --warn:#b7791f; --warn-weak:#fdf6e3;
+    --radius:14px; --shadow:0 1px 2px rgba(16,24,40,.05),0 8px 24px rgba(16,24,40,.05);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0d1014; --card:#15191f; --panel:#15191f; --line:#262c35; --line-soft:#1f252d;
+      --text:#e8ecf2; --muted:#98a2b0; --muted-2:#79838f;
+      --accent:#74a3ff; --accent-weak:#182233; --accent-line:#2b3d5c;
+      --ok:#43c78a; --ok-weak:#12291f; --warn:#e0b552; --warn-weak:#2b2416;
+      --shadow:0 1px 2px rgba(0,0,0,.4);
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg);color:var(--text);
+    font:15px/1.7 system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  button{font:inherit;color:inherit}
+
+  .top{
+    display:flex;align-items:center;gap:12px;padding:11px 20px;
+    border-bottom:1px solid var(--line);background:var(--card);position:sticky;top:0;z-index:20;
+  }
+  .top a.back{font-size:13px;color:var(--muted);border:1px solid var(--line);
+    padding:5px 11px;border-radius:8px;white-space:nowrap}
+  .top a.back:hover{color:var(--accent);border-color:var(--accent-line);text-decoration:none}
+  .ttl{font-weight:600;font-size:14.5px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .streak{font-size:12.5px;color:var(--muted);white-space:nowrap}
+  .streak b{color:var(--accent);font-size:14px}
+
+  .wrap{max-width:820px;margin:0 auto;padding:20px 18px 60px}
+  @media (max-width:520px){ .wrap{padding:14px 12px 50px} }
+
+  .date{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin:2px 0 14px}
+  .date .d{font-size:22px;font-weight:650;letter-spacing:-.01em}
+  .date .w{font-size:12.5px;color:var(--muted-2)}
+
+  .card{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:22px 24px 20px;
+  }
+  @media (max-width:520px){ .card{padding:18px 16px 16px} }
+  .chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+  .chip{
+    font-size:11px;padding:2px 8px;border-radius:20px;
+    border:1px solid var(--accent-line);background:var(--accent-weak);color:var(--accent);
+    letter-spacing:.02em;white-space:nowrap;
+  }
+  .chip.t{background:var(--bg);border-color:var(--line);color:var(--muted)}
+  .q{font-size:20px;line-height:1.4;font-weight:650;margin:0 0 14px;letter-spacing:-.015em}
+  @media (max-width:520px){ .q{font-size:18px} }
+  .a{font-size:15px;line-height:1.85;color:var(--text);margin:0 0 16px}
+  .a code{
+    background:var(--bg);border:1px solid var(--line-soft);border-radius:5px;
+    padding:.08em .36em;font:.88em/1.5 ui-monospace,SFMono-Regular,Consolas,monospace;
+  }
+  .try{
+    background:var(--bg);border:1px solid var(--line);border-left:3px solid var(--accent);
+    border-radius:9px;padding:11px 13px;margin:0 0 14px;overflow:auto;
+  }
+  .try .lab{font-size:11px;color:var(--muted-2);letter-spacing:.06em;margin-bottom:5px}
+  .try pre{margin:0;font:12.4px/1.66 ui-monospace,SFMono-Regular,Consolas,monospace;white-space:pre}
+  .more{
+    font-size:13.2px;color:var(--muted);border-top:1px dashed var(--line);
+    padding-top:12px;margin-top:2px;
+  }
+  .more b{color:var(--text);font-weight:600}
+
+  .acts{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 26px}
+  .btn{
+    border:1px solid var(--line);background:var(--card);color:var(--text);
+    padding:7px 14px;border-radius:9px;font-size:13px;cursor:pointer;
+    display:inline-flex;align-items:center;gap:6px;
+  }
+  .btn:hover{border-color:var(--accent-line);color:var(--accent)}
+  .btn.on{background:var(--accent-weak);border-color:var(--accent-line);color:var(--accent)}
+  .btn.done{background:var(--ok-weak);border-color:var(--ok);color:var(--ok)}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn.primary:hover{opacity:.92;color:#fff}
+
+  h3.sec{
+    font-size:13px;font-weight:600;color:var(--muted);letter-spacing:.04em;
+    margin:26px 0 10px;text-transform:uppercase;
+  }
+  .mini{
+    background:var(--card);border:1px solid var(--line);border-radius:11px;
+    padding:12px 14px;margin-bottom:8px;
+  }
+  .mini .mq{font-size:14px;font-weight:600;line-height:1.5;margin:0 0 4px}
+  .mini .ma{font-size:13px;color:var(--muted);margin:0;line-height:1.65;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .mini .mm{font-size:11px;color:var(--accent);margin-bottom:3px}
+
+  .empty{color:var(--muted-2);font-size:13px;padding:14px 2px}
+
+  .filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+  .f{
+    font-size:12px;padding:4px 10px;border-radius:20px;cursor:pointer;
+    border:1px solid var(--line);background:var(--card);color:var(--muted);
+  }
+  .f.on{background:var(--accent-weak);border-color:var(--accent-line);color:var(--accent);font-weight:600}
+
+  .browse .row{
+    display:flex;gap:10px;align-items:flex-start;padding:9px 11px;border-radius:9px;
+    border:1px solid transparent;cursor:pointer;
+  }
+  .browse .row:hover{background:var(--card);border-color:var(--line)}
+  .browse .row .n{font-size:11px;color:var(--muted-2);width:26px;flex:none;
+    text-align:right;font-variant-numeric:tabular-nums;padding-top:3px}
+  .browse .row .b{flex:1;min-width:0}
+  .browse .row .bq{display:block;font-size:13.4px;line-height:1.5}
+  .browse .row .bm{display:block;font-size:11px;color:var(--muted-2);margin-top:2px}
+  .browse .row.k .bq{color:var(--ok)}
+  .browse .row.fav .bq::after{content:" ★";color:var(--warn)}
+
+  .foot{color:var(--muted-2);font-size:12px;line-height:1.8;margin-top:34px;
+    border-top:1px solid var(--line);padding-top:14px}
+  .foot code{background:var(--card);border:1px solid var(--line-soft);border-radius:4px;padding:0 4px}
+  kbd{font:inherit;font-size:11.5px;background:var(--card);border:1px solid var(--line);
+    border-radius:5px;padding:1px 5px;margin:0 1px}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <a class="back" href="index.html">← 看板</a>
+  <a class="back" href="player.html">▶ 学习台</a>
+  <div class="ttl">今日知识</div>
+  <div class="streak">连续 <b id="sk">0</b> 天 · 看过 <b id="seen">0</b> 条</div>
+</div>
+
+<div class="wrap">
+  <div class="date">
+    <span class="d" id="d-date">—</span>
+    <span class="w" id="d-week"></span>
+  </div>
+
+  <article class="card" id="card"></article>
+
+  <div class="acts">
+    <button class="btn primary" id="b-next">换一条</button>
+    <button class="btn" id="b-fav">收藏</button>
+    <button class="btn" id="b-known">已掌握</button>
+    <button class="btn" id="b-copy">复制</button>
+  </div>
+
+  <h3 class="sec">今天顺手再扫两眼</h3>
+  <div id="minis"></div>
+
+  <h3 class="sec">我的收藏 <span id="fav-n" style="font-weight:400;color:var(--muted-2)"></span></h3>
+  <div id="favs"></div>
+
+  <h3 class="sec">全部条目</h3>
+  <div class="filters" id="filters"></div>
+  <div class="browse" id="browse"></div>
+
+  <div class="foot">
+    共 <b id="total">0</b> 条，每天自动换一条（同一天刷新不变），键盘 <kbd>J</kbd>/<kbd>K</kbd> 上下条、<kbd>F</kbd> 收藏。
+    <br>内容围绕这门课的七个模块写，遇到看不懂的先收藏，等学到那一章再回来看会突然通。
+    <br>打卡与收藏存在这台电脑的浏览器里，不上传。
+  </div>
+</div>
+
+<script>
+const KB = [{"m":"00","t":"入门","q":"数据工程师一天到底在干什么？","a":"把数据从「产生的地方」搬到「能用来做决策的地方」，并且保证它每天准时、正确、可重跑。\n具体动作是：接数据源、写管道、建表建模、做质检、修炸掉的调度、回答『这个数为什么不对』。\n写代码只占一半时间，另一半在查数据和跟人对齐口径。","more":"所以这门课七个模块的顺序，其实就是一条数据从产生到可用的路径。"},{"m":"00","t":"概念","q":"ETL 和 ELT 差一个字母，差在哪？","a":"ETL 是「先转换再加载」，转换发生在仓库外面（当年的机器扛不住大数据，只能先算好再入库）。\nELT 是「先原样加载再转换」，因为现在的仓库（BigQuery、Snowflake）算力足够，原始数据先落地，转换逻辑用 SQL 在仓库里跑。\n现代数据栈基本是 ELT，dbt 就是 ELT 里的那个 T。","more":"好处：原始层保留，转换逻辑改一行 SQL 就能重跑，不用重新抽数。"},{"m":"00","t":"概念","q":"OLTP 和 OLAP 为什么不能共用一个库？","a":"OLTP 是业务库：一行一行地改，讲究快、准、并发高，比如下单扣库存。\nOLAP 是分析库：一次扫几千万行做聚合，讲究吞吐和压缩。\n两者的存储布局天生冲突 —— 行存适合点查，列存适合扫一大片。硬塞一起，两边都慢。","more":"这就是为什么要「抽数到仓库」，而不是直接连生产库跑报表。"},{"m":"00","t":"概念","q":"批处理一定过时了吗？","a":"没有。批处理的优势是简单、便宜、好重跑：一批数据算错，重跑这一批就完事了。\n流处理的优势是延迟低，代价是状态管理、乱序、重复投递这些麻烦事都得自己扛。\n判断标准不是「谁更先进」，而是业务能容忍多少延迟 —— 日报用批，风控用流。"},{"m":"00","t":"核心概念","q":"幂等：数据管道最重要的一个词","a":"同一个任务跑一次和跑十次，结果一样，就叫幂等。\n管道一定会重跑（失败重试、补数据、改逻辑），不幂等的话，每重跑一次数据就多一份。\n常见做法：写入前先删掉这一批的目标分区，或者用 `MERGE` / `INSERT OVERWRITE` 按主键覆盖。","try":"-- 按分区覆盖，重跑多少遍都是同一份\nCREATE OR REPLACE TABLE t\nPARTITION BY DATE(ts) AS\nSELECT * FROM src WHERE DATE(ts) = '2024-01-01';","more":"面试高频题：『你的管道怎么保证重跑不出重复数据？』答案就是这个。"},{"m":"00","t":"核心概念","q":"分区（partition）为什么能省一大笔钱？","a":"分区是把一张大表按某个字段（通常是日期）切成很多小块，物理上分开存。\n查询时如果 WHERE 里带上了分区字段，引擎只扫对应那几块，其他直接跳过。\nBigQuery 按扫描字节收费，不加分区过滤的全表扫描，一次可能就烧掉几美元。","try":"SELECT COUNT(*) FROM t WHERE DATE(ts) = '2024-01-01'  -- 只扫一天\nSELECT COUNT(*) FROM t WHERE FORMAT_DATE('%Y-%m-%d', ts) = '2024-01-01'  -- 扫全表，别这么写","more":"对分区列套函数 = 分区失效，这是新手最常踩的坑。"},{"m":"00","t":"存储","q":"为什么分析型数据库都用列式存储？","a":"分析查询通常是「扫几百万行，但只用 3 个字段」。\n行存要把整行读出来再丢掉不用的列；列存只读那 3 列，IO 直接少一个数量级。\n而且同一列的数据类型相同、重复度高，压缩率能到 10 倍以上。","more":"代价：按行取整条记录（点查）反而慢，所以 OLTP 不用列存。"},{"m":"00","t":"存储","q":"Parquet、CSV、Avro 分别什么时候用？","a":"CSV：人能看懂，机器读得慢，没有类型、没有压缩，只适合交换小数据。\nParquet：列存 + 自带 schema + 高压缩，分析场景的标准格式，Spark / BigQuery / dbt 都用它。\nAvro：行存 + 带 schema，适合流式写入和「一条记录完整读出来」的场景，Kafka 生态常见。","more":"一句话：要扫描用 Parquet，要传一条条消息用 Avro，要发给人看用 CSV。"},{"m":"00","t":"架构","q":"数据湖、数据仓库、湖仓一体，到底怎么选？","a":"数据湖：什么格式都能扔进去（对象存储 + 文件），便宜灵活，但容易变成「数据沼泽」——没人知道里面有什么。\n数据仓库：结构化、有 schema、查询快、治理好，但贵，且只收规整数据。\n湖仓一体（Iceberg / Delta / Hudi）：文件放湖里，上面套一层表格式，兼得便宜和可查询。","more":"小团队的现实选择：云仓库 + 对象存储放原始文件，别一上来就搭湖仓。"},{"m":"00","t":"建模","q":"事实表和维度表，一句话分清","a":"事实表存「发生了什么」：一次下单、一次骑行、一次支付，字段是数值和 ID，行数巨大。\n维度表存「是谁、在哪、什么时候」：用户、商品、门店、日期，行数小，字段是描述。\n分析时事实表围着维度表转 —— 这就是星型模型。","more":"判断技巧：能 SUM 的是事实，能 GROUP BY 的是维度。"},{"m":"00","t":"建模","q":"星型模型和雪花模型，为什么推荐星型？","a":"星型：维度表不再拆，直接一层，宽而扁平。\n雪花：维度表继续规范化，比如商品 → 品类 → 大类，拆成多层。\n雪花省存储、逻辑更「干净」，但每次查询要多 join 几层，分析型引擎上 join 是实打实的成本。所以维度建模的祖师爷 Kimball 推荐星型。"},{"m":"00","t":"建模","q":"SCD（缓慢变化维）是什么，Type 2 怎么实现？","a":"维度会变：用户搬家了、商品涨价了、员工换部门了。历史数据要不要跟着变？\nType 1：直接覆盖，简单，但历史分析会失真。\nType 2：加 `valid_from` / `valid_to` / `is_current`，每次变化插一行新记录，保留完整历史。\ndbt 的 `snapshot` 就是自动帮你做 Type 2。","more":"典型用途：『这个用户下单时是哪个等级？』必须用当时的维度版本。"},{"m":"00","t":"质量","q":"数据质量到底检查什么？","a":"六个维度：完整性（该有的没缺）、唯一性（主键不重复）、及时性（今天的数据到了吗）、有效性（枚举值合法、日期不越界）、一致性（同一指标两个表算出来一样）、准确性（和业务事实对得上）。\n落地方式：在管道里加断言，不通过就报警甚至阻断下游，而不是等人发现报表错了。","try":"-- dbt 里的写法\ntests:\n  - not_null\n  - unique\n  - accepted_values:\n      values: ['pending','paid','refunded']"},{"m":"00","t":"概念","q":"数据血缘（lineage）解决什么痛？","a":"一张报表数字不对，你要回答：它上游是谁？上游的上游是谁？改这个字段会炸掉哪些下游？\n血缘就是这张依赖关系图，能自动从 SQL 里解析出来。\ndbt 的 `ref()` 天然生成血缘，所以它不只是写 SQL 的工具，还是治理工具。","more":"没有血缘的团队，改一个字段前要问一圈人，这就是隐形成本。"},{"m":"00","t":"概念","q":"全量同步和增量同步，什么时候用哪个？","a":"全量：每次把整张表重新搬一遍。简单、绝对不会漏，但数据一大就搬不动、也贵。\n增量：只搬上次之后变化的部分，靠 `updated_at` 或 CDC（变更数据捕获）。快、省，但要处理迟到数据和删除。\n经验值：小维表全量，大事实表增量，删除用软删除标记。","more":"增量最容易被忽略的问题：源系统物理删了一行，增量同步是发现不了的。"},{"m":"00","t":"流处理","q":"水位线（watermark）在解决什么？","a":"流数据会乱序到：10:03 的事件可能 10:07 才到。要按时间窗口聚合，就得决定「等到什么时候算齐了」。\n水位线就是这条线：早于水位线的事件认为已经到齐，可以关窗口输出结果。\n设太紧会丢迟到数据，设太松结果迟迟出不来 —— 这是个业务权衡，不是技术参数。"},{"m":"00","t":"性能","q":"数据倾斜：99 个任务 1 分钟跑完，1 个跑了 1 小时","a":"按 key 分区后，某个 key 的数据量远大于其他（比如 null、默认用户、爆款商品），所有压力集中到一个 task 上，其他早早跑完在旁边等。\n解法：给热 key 加随机后缀打散再聚合、把 null 单独处理、或者用 broadcast 把小表广播出去。\nSpark UI 里看到某个 stage 有几个 task 特别慢，基本就是它。"},{"m":"00","t":"架构","q":"为什么需要「编排器」，cron 不够吗？","a":"cron 只知道「几点跑」，不知道「上游好了没」。上游延迟 10 分钟，下游就拿到半份数据。\n编排器知道任务之间的依赖、能失败重试、能补历史区间、能看到每次跑的状态和日志。\n简单说：cron 管时间，编排器管依赖和状态。","more":"这就是模块 2 存在的理由 —— 也是为什么它排在 Docker 之后、仓库之前。"},{"m":"00","t":"工程化","q":"「数据即代码」是什么意思？","a":"把建表、转换、测试、文档全部写成文件放进 git，而不是在数据库里手工点、手工改。\n好处：改动有记录、能 review、能回滚、能在另一个环境一模一样地重建。\ndbt、Terraform、Kestra 都是这个思路，只是管的层次不同（转换 / 基础设施 / 调度）。"},{"m":"00","t":"协作","q":"数据契约（data contract）想解决什么扯皮？","a":"上游改了字段名或类型，下游管道静默失败，报表第二天早上空的 —— 这类事故的根源是「没人约定」。\n数据契约是把 schema、语义、SLA、变更流程写成双方签字的文件，上游改之前必须先通知。\n技术上是 schema registry 或 CI 里的兼容性检查，组织上是流程。"},{"m":"01","t":"Docker","q":"镜像和容器，差在哪一个词？","a":"镜像是「只读的模板」，容器是「镜像跑起来的一个实例」。\n一个镜像可以起 10 个容器，就像一份 class 可以 new 出 10 个对象。\n容器里改的文件不会影响镜像，除非你 commit —— 所以别把数据存在容器里。","try":"docker images          # 有哪些模板\ndocker ps -a            # 有哪些实例（含已停止）"},{"m":"01","t":"Docker","q":"为什么容器比虚拟机「轻」？","a":"虚拟机虚拟的是硬件，每台都要跑一个完整的操作系统内核，启动几十秒、占几个 G。\n容器共享宿主机的内核，只打包应用和依赖，启动毫秒级、占几十 M。\n代价：容器隔离性弱于 VM，且 Linux 容器在 Windows 上要靠 WSL2 跑一层虚拟机。","more":"这就是为什么 Windows 上装 Docker Desktop 会顺带装上 WSL2。"},{"m":"01","t":"Docker","q":"Dockerfile 的层缓存怎么才会失效？","a":"每条指令生成一层，某层变了，它和它之后的所有层都要重建。\n所以顺序很关键：先 COPY 依赖清单（requirements.txt）装依赖，再 COPY 源码。\n这样你只改代码时，依赖那层还命中缓存，构建几秒钟就好。","try":"# 对的顺序\nCOPY requirements.txt .\nRUN pip install -r requirements.txt\nCOPY . .","more":"反例：`COPY . .` 写在 `pip install` 前面，改一行代码就得重装所有包。"},{"m":"01","t":"Docker","q":"volume 和 bind mount 的区别，数据存哪？","a":"volume 由 Docker 管理，存在 `docker volume` 里，跨平台、性能好，适合数据库数据。\nbind mount 直接挂宿主机的一个路径，改代码立刻生效，适合开发调试。\n两者都让容器删了数据还在 —— 不挂的话，`docker rm` 一执行数据就没了。","try":"docker run -v pgdata:/var/lib/postgresql/data postgres:17\ndocker run -v $(pwd):/app python:3.13"},{"m":"01","t":"Docker","q":"docker-compose 里，容器之间用什么地址互连？","a":"用「服务名」，不是 localhost。\ncompose 会创建一个默认网络，把服务名解析成容器 IP，所以 pgadmin 连数据库写 `db:5432`（服务名 + 容器内端口）。\nlocalhost 在容器里指的是容器自己，写它就是连自己，必然连不上。","try":"services:\n  db:\n    image: postgres:17\n  pgadmin:\n    environment:\n      PGADMIN_DEFAULT_EMAIL: admin@admin.com","more":"作业 1 第 2 题考的就是这个坑，很多人第一次做都会栽。"},{"m":"01","t":"Docker","q":"端口映射 `5432:5432` 左右两边分别是什么？","a":"左边是宿主机端口，右边是容器内端口。\n`-p 5433:5432` 意思是：从你电脑的 5433 进，转到容器的 5432。\n本机已经有 Postgres 占了 5432 时，就靠这个错开，然后客户端连 5433。","try":"docker run -p 5433:5432 postgres:17"},{"m":"01","t":"Docker","q":".dockerignore 为什么能明显加快构建？","a":"`COPY . .` 会把整个目录塞进构建上下文发给 Docker daemon，包括 `.git`、`data/`、虚拟环境。\n几百 MB 的上下文每次构建都传一遍，慢得离谱，还会让缓存频繁失效。\n写一个 `.dockerignore`，把 `.git`、`__pycache__`、`*.csv`、`.venv` 排除掉。"},{"m":"01","t":"Docker","q":"多阶段构建（multi-stage）解决什么问题？","a":"编译需要一整套工具链（几百 MB），但运行时只需要产物（几十 MB）。\n多阶段构建：第一个阶段编译，第二个阶段只 `COPY --from=builder` 拿产物。\n最终镜像能小一个数量级，拉取快、攻击面小。"},{"m":"01","t":"Terraform","q":"terraform.tfstate 到底是什么，为什么不能进 git？","a":"它是 Terraform 的「记忆」：记录我创建了哪些资源、它们的 ID 和属性。没有它，Terraform 不知道现状，会以为什么都没建，然后重复创建。\n不能进 git 的原因：里面常有明文密码、密钥；而且多人同时 apply 会互相覆盖。\n正经做法是放远端后端（GCS / S3）并加锁。","more":"`terraform state list` 可以看到它记了哪些资源。"},{"m":"01","t":"Terraform","q":"plan 和 apply 之间为什么必须看一眼 plan？","a":"`plan` 是预演：告诉你将要新增几个、修改几个、销毁几个资源。\n最危险的是 destroy：改错一个变量，plan 里可能出现 `-/+ destroy and then create`，那是把生产数据库重建，数据全没。\n习惯：plan 里出现 destroy，一定停下来确认是不是预期。","try":"terraform plan -out=tfplan\nterraform apply tfplan"},{"m":"01","t":"Terraform","q":"IaC 的意义只是「不用点控制台」吗？","a":"不止。它让基础设施变成可以被 review、被版本化、被复制的东西：\n新同事入职，`terraform apply` 就能得到一模一样的环境；\n误删了资源，改回来重新 apply 就行；\n环境差异写在代码里，而不是某个人记得的「我上次点过什么」。"},{"m":"01","t":"Terraform","q":"provider 和 resource 的区别","a":"provider 是「跟哪个平台对话」的插件：`google`、`aws`、`docker`。要配置认证信息。\nresource 是「要创建什么」：一个 bucket、一台 VM、一个数据集。\n同一份配置里可以有多个 provider（比如 GCP + Docker）。","try":"terraform {\n  required_providers {\n    google = { source = \"hashicorp/google\" }\n  }\n}"},{"m":"01","t":"GCP","q":"为什么 GCS 被当作「数据湖」用？","a":"对象存储便宜、容量无限、按用量付费，什么格式都能扔进去：原始 JSON、日志、Parquet、图片。\n配合 BigQuery 的外部表，可以直接对 GCS 里的文件写 SQL，不用先导入。\n所以典型分层是：GCS 存原始数据（便宜）→ BigQuery 存加工后的表（快）。","more":"模块 1 的 Terraform 就是在建 bucket + BigQuery dataset 这一套。"},{"m":"01","t":"SQL","q":"为什么 SQL 里 JOIN 之后行数会变多？","a":"一对多关系：左表 1 行匹配右表 3 行，结果就是 3 行。\n很多人以为 JOIN 只是「补充字段」，于是 SUM 出来的金额翻了几倍还找不到原因。\n排查：先单独 `SELECT COUNT(*)` 两边，再看 join 后的行数；或者先按主键去重再 join。","try":"SELECT COUNT(*) FROM yellow_taxi;          -- 原始\nSELECT COUNT(*) FROM yellow_taxi t JOIN zones z ON t.zone_id = z.id;  -- 变多了说明 zones 有重复 id"},{"m":"01","t":"SQL","q":"NULL 参与比较，为什么永远不成立？","a":"NULL 表示「未知」，不是 0 也不是空字符串。任何和 NULL 的比较结果都是 UNKNOWN，不是 true。\n所以 `WHERE col != 'x'` 会漏掉 `col IS NULL` 的行 —— 这是「数据莫名少了几千行」的经典原因。\n要用 `IS NULL` / `IS DISTINCT FROM`，或者在 WHERE 里显式包含 NULL。"},{"m":"02","t":"编排","q":"DAG 这个词在数据管道里指什么？","a":"有向无环图：节点是任务，箭头是依赖，且不能有环（A 依赖 B，B 又依赖 A 就永远跑不起来）。\n『有向』决定执行顺序，『无环』保证一定能跑完。\nKestra、Airflow、dbt 的模型依赖，本质都是 DAG。"},{"m":"02","t":"编排","q":"回填（backfill）为什么是编排器的核心能力？","a":"上线三个月后，业务说「这个指标口径错了，重新算一下历史」。\n手工做法：改代码，然后想办法把过去 90 天一天天重跑 —— 这就是回填。\n编排器支持「指定日期区间重跑」，前提是你的任务是幂等的，否则越跑越乱。","more":"所以幂等和回填是一对：没有幂等，回填等于制造脏数据。"},{"m":"02","t":"编排","q":"重试（retry）该设几次、间隔多久？","a":"区分两类失败：临时性（网络抖动、并发锁、API 限流）值得重试；确定性（SQL 语法错、字段不存在）重试一万次也一样。\n常见配置：重试 2-3 次，指数退避（1 分钟、5 分钟、15 分钟）。\n重试仍失败就告警到人 —— 无限重试只会把问题埋起来。"},{"m":"02","t":"编排","q":"为什么调度任务要「按数据分区跑」，而不是「按当前时间跑」？","a":"按当前时间跑：`WHERE dt = CURRENT_DATE()`。补历史时，无论跑哪一天，都只会处理今天。\n按分区跑：任务接收一个 `execution_date` 参数，处理那一天的逻辑分区。补哪天就传哪天。\n这是能不能做回填的分水岭，写管道时第一天就该定下来。","try":"-- 错的\nWHERE DATE(ts) = CURRENT_DATE()\n-- 对的\nWHERE DATE(ts) = '{{ execution_date | ds }}'"},{"m":"02","t":"编排","q":"任务依赖和数据依赖，差别在哪？","a":"任务依赖：A 跑完就跑 B。简单，但 A 跑完不代表 A 的数据到位了（A 可能部分失败还返回成功）。\n数据依赖：等「A 产出的那张表今天的分区存在且有数据」再跑 B。更稳。\nAirflow 的 sensor、dbt 的 `source freshness` 都是干这个的。"},{"m":"02","t":"编排","q":"Kestra 用 YAML 描述流程，好处和代价各是什么？","a":"好处：不用写 Python 类，运维和数据分析师也能读；流程定义本身就是文档；容易做 UI 和校验。\n代价：复杂逻辑（循环嵌套、动态分支、自定义库）写起来比代码别扭，最终还是要落回脚本里。\n趋势是「编排用声明式，计算用代码」，各干各擅长的。"},{"m":"02","t":"编排","q":"编排器不应该做的事有哪些？","a":"不该拿它做重计算：编排器的进程是「调度大脑」，不是「干活的肌肉」。在调度器里跑 4 小时 Spark 任务会把整个调度拖死。\n正确做法：编排器只负责触发、监控、传参，真正的计算交给 Spark / BigQuery / dbt。\n同理，也别在编排器里存业务状态。"},{"m":"02","t":"编排","q":"触发器有哪几种，各自什么时候用？","a":"定时（cron）：日报、周报，最常用。\n事件（文件到达、消息队列）：上游一产出就跑，延迟低。\n手动：临时补数、调试。\n还有「依赖其他流程完成」—— 大团队里更常见，避免一张巨大的 DAG 谁都不敢改。"},{"m":"02","t":"编排","q":"为什么「一个巨大的 DAG」是反模式？","a":"所有任务挤在一个 DAG 里：一个人改错一行，全员任务失败；一次重跑要跑几百个任务；日志翻不到底。\n做法是拆：按业务域拆、按层拆（摄取 / 转换 / 导出），用「数据集就绪」串联，而不是硬编码依赖。\n这也是 dbt 的 `ref()` 比手写 `depends_on` 更好的原因 —— 依赖从数据推导出来。"},{"m":"02","t":"编排","q":"告警怎么设才不会变成噪音？","a":"只对「需要人动手」的事告警。任务失败 3 次以上才告警；数据量骤降 50% 告警；延迟超过 SLA 告警。\n每天必响的告警等于没有告警 —— 大家会习惯性忽略它。\n再加一条：告警内容里写清「哪个任务、哪个分区、怎么重跑」，别只发一个失败堆栈。"},{"m":"02","t":"编排","q":"为什么说 dbt 和编排器是分工不是竞争？","a":"dbt 管「表与表之间的转换逻辑和依赖」，它自己不负责「每天 6 点跑」。\n编排器管「什么时候跑、失败怎么办、跑完通知谁」。\n所以常见组合是 Kestra / Airflow 触发 `dbt run`，dbt 内部再按 `ref()` 拓扑排序。"},{"m":"02","t":"编排","q":"并发度设多高才合适？","a":"看两个上限：仓库的并发配额（BigQuery 有每分钟查询数限制）、上游 API 的限流。\n调太高：任务互相抢资源，全部变慢，还可能触发限流全挂。\n调太低：队列积压，错过 SLA。\n做法：先小后大，压测一次，看队列等待时间和失败率，再定。"},{"m":"03","t":"BigQuery","q":"BigQuery 为什么按「扫描字节数」收费，而不是按机器时间？","a":"它是无服务器架构，计算资源你不需要管，所以计价锚点变成「你让引擎读了多少数据」。\n这直接改变了优化思路：不是「加索引」，而是「少读点」—— 分区裁剪、只选需要的列、先聚合再 join。\n`SELECT *` 在 BigQuery 上是实实在在的浪费：列存里每一列都要读一遍。","try":"SELECT * FROM big_table LIMIT 10;  -- 看着只返回 10 行，其实扫了全表"},{"m":"03","t":"BigQuery","q":"分区（partition）和聚簇（cluster）的区别？","a":"分区：把表切成独立的物理块，一个分区一个文件，靠分区过滤能整块跳过。每个表只能按一个字段分区。\n聚簇：分区内部再按字段排序存储，最多 4 个字段，用于「分区内进一步缩小扫描」。\n组合用法：按日期分区 + 按 user_id 聚簇，查某天某用户时只读很小一块。","try":"CREATE TABLE t\nPARTITION BY DATE(ts)\nCLUSTER BY user_id\nAS SELECT * FROM src;"},{"m":"03","t":"BigQuery","q":"为什么「一张表一个日期后缀」是过时做法？","a":"`events_20240101`、`events_20240102`… 这是分片表（sharded tables）。\n问题是：查一个月要 UNION 30 张表、schema 改动要改 30 次、元数据爆炸、权限难管。\n原生分区表一张搞定，`WHERE DATE(ts) BETWEEN ...` 自动裁剪。老代码里还能见到分片表，新项目别这么干。"},{"m":"03","t":"BigQuery","q":"外部表和原生表，什么时候用外部表？","a":"外部表：数据留在 GCS 里，BigQuery 只读不存。便宜（只付存储 + 查询），适合「原始数据先落地、偶尔查一下」。\n原生表：数据导入 BigQuery 自己的存储，查询快、支持聚簇和分区优化，但存储费更贵。\n典型分层：GCS 外部表做原始层，加工后写原生表做分析层。"},{"m":"03","t":"BigQuery","q":"物化视图能省什么，不能省什么？","a":"能省：重复的聚合计算。BigQuery 会自动判断查询能否命中物化视图，命中就直接读预计算结果。\n不能省：它还是占存储、还是要在底层数据变化时增量刷新（有成本），而且对复杂 join / 窗口函数支持有限。\n别把它当万能加速器，先看执行计划里到底扫了多少。"},{"m":"03","t":"BigQuery","q":"STRUCT 和 ARRAY 是什么，为什么要用？","a":"BigQuery 支持嵌套：一行里可以有数组（ARRAY）和结构体（STRUCT），相当于把「一对多」塞进一行。\n好处：避免 join 爆炸，一次扫描拿到完整对象（比如一笔订单带所有商品）。\n代价：查询要用 `UNNEST` 展开，SQL 变复杂，很多 BI 工具不友好。","try":"SELECT o.id, item.name\nFROM orders o, UNNEST(o.items) AS item\nWHERE item.price > 100;"},{"m":"03","t":"SQL","q":"去重最稳的写法是什么？","a":"`SELECT DISTINCT` 在整行去重时可用，但只要有一列不同（比如加载时间戳）就失效。\n按主键去重、保留最新一条，标准写法是窗口函数：\n`ROW_NUMBER() OVER (PARTITION BY id ORDER BY updated_at DESC) = 1`。\n这也是「增量合并」和「取最新快照」的通用套路。","try":"SELECT * EXCEPT(rn) FROM (\n  SELECT *, ROW_NUMBER() OVER (PARTITION BY id ORDER BY updated_at DESC) rn\n  FROM src\n) WHERE rn = 1;"},{"m":"03","t":"SQL","q":"窗口函数和 GROUP BY 的本质区别","a":"GROUP BY 会「把多行压成一行」，聚合完就看不到明细了。\n窗口函数是「在保留每一行的前提下，算出它所属分组的聚合值」，所以能算占比、排名、环比、累计。\n记法：`GROUP BY` 改行数，`OVER()` 不改行数。","try":"SELECT zone, total,\n  ROUND(total * 100.0 / SUM(total) OVER (), 2) AS pct\nFROM zone_totals;"},{"m":"03","t":"性能","q":"`APPROX_COUNT_DISTINCT` 什么时候可以放心用？","a":"精确去重要维护巨大的哈希集合，几亿行时很慢很贵。近似算法（HyperLogLog）误差约 1%，但快一个数量级、内存小得多。\n适合：探索性分析、大屏看「大概多少独立用户」。\n不适合：财务对账、计费、任何要精确到个位的场景。"},{"m":"03","t":"建模","q":"数仓分层 staging / ods / dwd / dws 是什么意思？","a":"ods（原始层）：和源系统一致，不改逻辑，只加加载时间。\ndwd（明细层）：清洗、去重、统一口径，一行一个业务事件，最细粒度。\ndws（汇总层）：按主题聚合（用户日汇总、商品日汇总），给分析直接用。\nads（应用层）：直接服务某张报表。\n分层的意义：改口径只动一层，下游不用全改；出问题能逐层对比定位。","more":"dbt 里对应 staging / intermediate / marts，思路完全一样。"},{"m":"03","t":"建模","q":"为什么建议「最细粒度先落地」？","a":"聚合是不可逆的：按天汇总完，想按小时看就没有了。\n所以明细层一定要保留最细粒度（一次行程、一次点击），汇总层从明细派生。\n唯一例外是存储成本真的扛不住（原始日志量级），那就保留够用的最细粒度，并在文档里写清损失了什么。"},{"m":"03","t":"BigQuery","q":"怎么快速找出「哪条查询最烧钱」？","a":"查 `INFORMATION_SCHEMA.JOBS_BY_PROJECT`：它记录了每次查询的扫描字节数、执行人、耗时。\n按 `total_bytes_processed` 倒序排，通常前 5 条查询就占了大部分成本。\n治理第一步永远不是优化所有查询，而是先找出那 20%。","try":"SELECT user_email, ROUND(total_bytes_processed/1e9,2) gb, query\nFROM `region-us`.INFORMATION_SCHEMA.JOBS_BY_PROJECT\nWHERE creation_time > TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 7 DAY)\nORDER BY total_bytes_processed DESC LIMIT 20;"},{"m":"03","t":"BigQuery","q":"`LIMIT` 能省钱吗？","a":"不能。`LIMIT` 只限制返回行数，不减少扫描量 —— 引擎还是要读完再截断。\n真要省，得靠分区过滤、列裁剪（别 `SELECT *`）、或者先聚合。\n很多人以为加了 LIMIT 就安全了，结果账单照涨。"},{"m":"04","t":"dbt","q":"dbt 到底解决什么问题？","a":"把「一堆散落的 SQL 脚本 + 手工执行顺序」变成「有依赖、有测试、有文档、有版本」的工程。\n核心就三件事：`ref()` 自动排依赖、`test` 自动检查数据、`docs` 自动出文档。\n它不搬数据、不调度，只做仓库内的转换。"},{"m":"04","t":"dbt","q":"`ref()` 为什么比写表名好？","a":"写死 `FROM `project.dataset.orders``：换环境（dev/prod）要改一遍，改表名要全局搜索。\n写 `ref('stg_orders')`：dbt 自动解析成当前环境该用的表名，自动推导执行顺序，自动生成血缘图。\n这是 dbt 最核心的一个设计。","try":"select * from {{ ref('stg_orders') }}"},{"m":"04","t":"dbt","q":"source 和 ref 的区别，为什么原始表要用 source？","a":"`source` 指向「不由 dbt 生成的表」（源系统抽过来的原始表），`ref` 指向「dbt 自己生成的模型」。\n用 `source` 的好处：能配 `freshness` 检查「源数据到了没」，能生成源到模型的完整血缘，还能统一管理原始表命名。","try":"# sources.yml\nsources:\n  - name: raw\n    tables:\n      - name: yellow_taxi\n        loaded_at_field: _loaded_at\n        freshness: {warn_after: {count: 12, period: hour}}"},{"m":"04","t":"dbt","q":"四种物化方式：view / table / incremental / ephemeral","a":"view：不存数据，每次查都重算。开发阶段用，跑得快、省存储。\ntable：每次 `dbt run` 重建整表。稳，但大表很慢很贵。\nincremental：只追加/合并新数据，大事实表首选。\nephemeral：不落库，作为 CTE 内联到下游。适合轻量中间逻辑。","more":"选择顺序：先 view 验证逻辑 → 稳定后改 table → 数据量大再改 incremental。"},{"m":"04","t":"dbt","q":"增量模型 `is_incremental()` 怎么用才不会出错？","a":"`is_incremental()` 只在「表已存在且这次是增量运行」时为 true，第一次运行是 false（全量建表）。\n所以要在它里面写过滤条件，且过滤依据必须是可重放的（比如 `WHERE ts > (SELECT MAX(ts) FROM {{ this }})`）。\n常见错误：用 `CURRENT_DATE()` 做过滤，补历史数据时永远补不进来。","try":"{{ config(materialized='incremental', unique_key='id') }}\nselect * from {{ ref('stg_events') }}\n{% if is_incremental() %}\n  where ts > (select coalesce(max(ts), '1900-01-01') from {{ this }})\n{% endif %}"},{"m":"04","t":"dbt","q":"dbt 的四种测试，各查什么？","a":"`not_null`：这列不能有 NULL。`unique`：这列（或组合）不能重复。\n`accepted_values`：枚举必须在白名单里（status 只有 pending/paid/refunded）。\n`relationships`：外键必须在维表里存在（防止孤儿记录）。\n还有 `source freshness`：源数据是不是按时到了。","more":"测试不是给别人看的，是给自己兜底的 —— 上游改 schema 时第一时间报警。"},{"m":"04","t":"dbt","q":"staging / intermediate / marts 三层为什么这么分？","a":"staging：一对一对应源表，只做重命名、类型转换、去重。不写业务逻辑。\nintermediate：中间计算，可能多个 staging join 起来，但不直接给业务用。\nmarts：面向业务主题（订单、用户、财务），字段名要说人话，可以直接接 BI。\n分层让「改一处不影响全部」成为可能。"},{"m":"04","t":"dbt","q":"snapshot 怎么自动做 SCD Type 2？","a":"snapshot 会定期对比源表，发现某行关键字段变了，就把旧记录标记 `dbt_valid_to`，插一条新记录。\n关键配置：`unique_key`（谁是同一实体）、`strategy: timestamp`（按 updated_at 判断新旧）或 `check`（按字段列表）。\n这就是「历史维度」的标准实现，不用自己写 MERGE。"},{"m":"04","t":"dbt","q":"macro 和 Jinja，什么时候值得抽象？","a":"同一段 SQL 复制粘贴三遍以上，就该抽 macro 了。\n典型场景：生成日期序列、处理金额单位、统一「有效记录」过滤条件。\n但别过度抽象：macro 会让 SQL 变得「看不懂在查什么」，调试时得先展开 Jinja。\n经验：抽象「重复的样板」，不抽象「一次性的业务逻辑」。","try":"{% macro cents_to_dollars(col) %}\n  round({{ col }} / 100.0, 2)\n{% endmacro %}"},{"m":"04","t":"dbt","q":"seed 是干什么的，为什么别拿它存大表？","a":"seed 是把 CSV 文件纳入 dbt 管理（版本控制 + 可被 `ref`），适合小的映射表：国家代码、渠道分类、测试数据。\n所有 seed 会在每次 `dbt seed` 时全量重建，且以文本形式存在 git 里。\n几十万行以上的数据放 seed，仓库会被撑爆，构建也慢 —— 那种数据应该放表里。"},{"m":"04","t":"dbt","q":"为什么 dbt 项目里「一个模型只做一件事」？","a":"一个模型里干三件事（清洗 + join + 聚合），出问题时你无法判断是哪一步错；也无法复用中间结果。\n拆开之后：每个模型可单独测试、可单独重跑、可被多个下游复用。\n代价是模型变多，但 dbt 的依赖图和 `dbt build --select +model` 让这不成问题。"},{"m":"04","t":"dbt","q":"`dbt build` 和 `dbt run` 差在哪？","a":"`dbt run` 只跑模型（建表/视图）。`dbt build` 会按依赖顺序跑：seed → 模型 → 测试 → snapshot。\n用 build 的好处：测试失败会阻断下游模型，脏数据不会往下游扩散。\nCI 里应该用 `dbt build`，本地调试可以用 `dbt run --select` 单跑。"},{"m":"04","t":"dbt","q":"开发时怎么避免污染生产数据？","a":"用 target 区分环境：`dbt run --target dev` 写到 `dataset_dev_你的名字`，`prod` 才写正式数据集。\n再配合 `--select` 只跑自己改的模型、`--limit` 限制行数快速验证逻辑。\n原则：任何人在本地都能随便跑，但永远碰不到生产表。","try":"# profiles.yml\noutputs:\n  dev:\n    dataset: dbt_dev\n  prod:\n    dataset: dbt_prod"},{"m":"04","t":"dbt","q":"dbt 能不能做增量更新的「删除同步」？","a":"默认 `incremental` 只做 insert / update（按 unique_key merge），源端物理删除的行不会从目标表消失。\n要处理删除，要么用软删除标记（`is_deleted`），要么定期做全量重建，要么在增量逻辑里先删掉本次涉及的分区再插入。\n这是增量模型最常见的盲区，上线前一定要问清楚「源端会删数据吗」。"},{"m":"05","t":"平台","q":"「数据平台」和「一堆数据工具」的区别？","a":"工具是各自为战的：抽取工具、仓库、BI 各管一段，中间靠人肉对齐。\n平台是把这些串成一条自助流水线：统一权限、统一元数据、统一调度、统一监控，让业务方自己就能拿到可信数据，不用每次找数据工程师。\n衡量标准不是「装了多少工具」，而是「一个新需求从提出到拿到数据要多久」。"},{"m":"05","t":"平台","q":"元数据管理为什么是平台的地基？","a":"元数据是「关于数据的数据」：这张表谁建的、字段什么意思、多久更新一次、谁在用、上游是谁。\n没有元数据：新人找不到表、找到了不敢用、用了不知道对不对。\n有了元数据：能搜索、能看血缘、能看负责人、能做影响分析。"},{"m":"05","t":"平台","q":"小团队该不该自建数据平台？","a":"不该。自建平台至少要养 3-5 个人长期维护（调度、存储、权限、监控），还要不断跟进开源版本。\n小团队的正确姿势：托管仓库（BigQuery/Snowflake）+ 托管编排（Kestra Cloud/Airflow 托管）+ dbt，用托管换时间，把人力放在业务建模上。\n什么时候该自建：数据规模或合规要求让托管方案成本失控的时候。"},{"m":"05","t":"平台","q":"数据成本治理，第一步做什么？","a":"先「看得见」：按团队/项目/查询打标签，把账单分摊下去。没人知道自己花了多少，就不会有人优化。\n然后找大头：Top 20 的查询和表通常占 80% 成本。\n最后定规则：大表必须有分区、禁止全表扫描、超过阈值的查询要审批、临时表设 TTL。"},{"m":"05","t":"角色","q":"数据工程师、数据分析师、分析工程师，边界在哪？","a":"数据工程师：管管道和基础设施 —— 数据怎么进来、怎么存、怎么保证准时。\n数据分析师：管「回答业务问题」—— 写 SQL 出结论、做看板。\n分析工程师（Analytics Engineer）：中间地带，用工程手段（dbt + git + 测试）做建模，产出干净的数据集给分析师和 BI 用。\n课程模块 4 就对应这个岗位。"},{"m":"05","t":"平台","q":"自助分析（self-service）最大的障碍是什么？","a":"不是工具，是「可信度」：业务方自己拉了一次数，和报表对不上，从此再也不信自助工具。\n所以自助分析的前提是：指标有唯一定义（指标层）、数据有质量监控、口径有文档。\n先建好「单一事实来源」，再谈自助。顺序反了就是灾难。"},{"m":"05","t":"平台","q":"为什么「指标口径」要集中定义一次？","a":"「活跃用户」在增长团队是「7 日内登录」，在财务是「当月有付费」，在运营是「打开过 App」。\n三个口径都合理，但放一张报表里就是三个数，会议直接开崩。\n做法：在指标层（metrics layer）用代码定义一次，所有报表引用同一个定义。\ndbt 的 metrics、Cube、MetricFlow 都是干这个的。"},{"m":"05","t":"平台","q":"数据目录（catalog）解决了什么实际问题？","a":"公司有 3000 张表，新人要算「复购率」，不知道用哪张。\n数据目录提供：全文搜索、表描述、字段注释、示例查询、负责人、更新频率、受欢迎程度。\n本质是「数据界的搜索引擎 + 点评网站」。\n数据目录没内容（描述空着）等于没有 —— 这是最常见的失败原因。"},{"m":"06","t":"Spark","q":"Spark 比 MapReduce 快在哪？","a":"MapReduce 每个阶段都把中间结果写磁盘，一个作业十几个阶段就是十几次磁盘往返。\nSpark 把中间结果放内存，并且把多个转换合并成一个 DAG 执行计划（不必要时不 shuffle）。\n所以迭代型计算（机器学习、多轮 join）快一个数量级。","more":"现在 Spark 也支持 GPU 和向量化执行，但核心优势仍是「内存 + DAG 优化」。"},{"m":"06","t":"Spark","q":"driver 和 executor 分别干什么？","a":"driver：跑你的 `main()`，解析代码、生成执行计划、切分 task、汇总结果。它不干活，只指挥。\nexecutor：真正执行 task 的进程，跑在 worker 节点上，负责读数据、计算、写结果。\n所以 driver 内存不够会 OOM（collect 大量数据到 driver），executor 内存不够也会 OOM（单分区太大）。"},{"m":"06","t":"Spark","q":"惰性求值（lazy）意味着什么？","a":"`transformations`（select、filter、join）不会立刻执行，只是「记下来」；只有遇到 `action`（count、show、write）才真正开跑。\n好处：Spark 能看到整条链路再做优化（谓词下推、列裁剪、合并 stage）。\n坑：在 transformation 里写 `print` 是看不到的，报错也只在 action 时才冒出来。","try":"df = spark.read.parquet('data/')        # 没读\ndf2 = df.filter('fare > 10')             # 没算\ndf2.count()                              # 现在才跑"},{"m":"06","t":"Spark","q":"shuffle 为什么是最贵的操作？","a":"shuffle 是把数据按 key 重新分发到不同节点 —— 要走网络、要落磁盘、要排序。\n`groupBy`、`join`、`distinct`、`repartition` 都会触发。\n优化思路：能不 shuffle 就不 shuffle（用 broadcast join 代替普通 join、用 `reduceByKey` 代替 `groupByKey`）。","more":"Spark UI 里看到某个 stage 有大量 shuffle read/write，就是优化的重点。"},{"m":"06","t":"Spark","q":"broadcast join 什么时候能用？","a":"一张表很小（默认 < 10MB）时，可以把它整个广播到每个 executor，大表就不用 shuffle 了。\n这是「小表 join 大表」的标准优化，往往能把耗时降一个数量级。\n前提：小表真的小。广播一张 2GB 的表会把 executor 内存撑爆。","try":"from pyspark.sql.functions import broadcast\ndf = big.join(broadcast(small), 'id')"},{"m":"06","t":"Spark","q":"分区数怎么定？200 是魔法数字吗？","a":"Spark 默认 shuffle 后 200 个分区，这只是个默认值，不是最优值。\n参考：每个分区处理 100-200MB 数据比较舒服。10GB 数据 → 50-100 个分区。\n分区太少：单个 task 太大，容易 OOM、并行度不够。\n分区太多：调度开销压过计算，产生大量小文件。","try":"df.repartition(120).write.parquet('out/')   # 按数据量估算，别拍脑袋"},{"m":"06","t":"Spark","q":"cache 和 persist 该在什么时候用？","a":"同一個 DataFrame 被多次 action 时才有意义 —— 第一次算完存内存，后面直接用。\n如果只用一次，cache 只会白占内存，甚至因为内存不足反而更慢。\n用完记得 `unpersist()`，尤其在长驻应用里。"},{"m":"06","t":"Spark","q":"UDF 为什么比内置函数慢？","a":"内置函数跑在 JVM 里，走的是 Tungsten 的二进制处理，还能被 Catalyst 优化。\nPython UDF 要把数据序列化 → 送到 Python 进程 → 算完 → 再序列化回来，每行都有这个开销。\n能用 `pyspark.sql.functions` 就用内置的；非要写 Python，用 pandas UDF（向量化）能快很多。"},{"m":"06","t":"Spark","q":"DataFrame 和 RDD 现在该怎么选？","a":"RDD 是底层抽象，给你完全控制，但没有 schema、没有优化器，代码也更难写。\nDataFrame / Dataset 有 schema，Catalyst 能优化执行计划，SQL 和 DataFrame 等价。\n结论：除了极少数需要精细控制内存布局的场景，一律用 DataFrame。"},{"m":"06","t":"Spark","q":"小文件问题是怎么产生的？","a":"每个分区写一个文件。分区数 200、跑了 30 天 → 6000 个文件，每个可能只有几 KB。\n文件太小：打开文件的元数据开销压过读取本身，下游查询极慢。\n解法：写之前 `repartition` / `coalesce` 减少分区数，或者写完后跑一个 compaction 任务合并。","try":"df.coalesce(8).write.mode('overwrite').parquet('out/')"},{"m":"06","t":"Spark","q":"为什么本地能跑、集群就 OOM？","a":"本地模式所有数据在一个 JVM 里，看起来「能跑完」；集群里数据分散，单个分区可能特别大（数据倾斜），那个 executor 就爆了。\n另外 `collect()` 把全部结果拉回 driver，数据一多必炸。\n排查：看 Spark UI 里 task 的输入大小分布，如果 max 是 median 的几十倍，就是倾斜。"},{"m":"06","t":"Spark","q":"本地怎么跑课程里的 Spark 作业？","a":"用 Docker 起一个 pyspark 容器，把数据目录挂进去，交互式跑。\n不要一开始就上集群 —— 作业数据量几十万行，本地几分钟就跑完了。\n等真的遇到「本地跑不动」，再去理解集群和调优，学习效率高得多。","try":"docker run -it --rm -v $(pwd):/app -w /app python:3.13 bash\npip install pyspark\npython -c \"import pyspark; print(pyspark.__version__)\""},{"m":"06","t":"批处理","q":"为什么 Spark 作业要「按分区读写」？","a":"写的时候按日期分区（`partitionBy('dt')`），读的时候带上分区过滤，就只读需要的那部分文件。\n这是「分区裁剪」在文件层面的实现，和 BigQuery 的分区同理。\n注意分区字段的基数别太高（按 user_id 分区会产生几百万个目录）。","try":"df.write.partitionBy('dt').mode('overwrite').parquet('out/trips/')"},{"m":"06","t":"批处理","q":"`mode('overwrite')` 会不会把整个目录删掉？","a":"会 —— 在 Spark 里 `overwrite` 默认删除输出路径的整个目录再写。\n如果按分区写且开了 `partitionOverwriteMode=dynamic`，只覆盖本次涉及的分区。\n这是重跑作业时最容易误删数据的地方，写之前一定确认路径。","try":"spark.conf.set('spark.sql.sources.partitionOverwriteMode', 'dynamic')"},{"m":"07","t":"Kafka","q":"topic、partition、offset 三个词一句话讲清","a":"topic 是「一类消息的频道」，partition 是频道下的「多条车道」（决定并行度），offset 是每条车道上的「门牌号」。\n消费者记的是「我读到第几号了」，所以可以随时回退重读 —— 这是 Kafka 能做重放的根本原因。"},{"m":"07","t":"Kafka","q":"consumer group 是怎么做负载均衡的？","a":"同一个 group 里的消费者分摊 partition，一个 partition 同一时刻只能被一个消费者读。\n所以：消费者数量 > partition 数量时，多出来的消费者闲置。\n扩容前先看 partition 数，这是最常见的「加了机器怎么没变快」的原因。","more":"不同 group 之间互不影响，各自读全量 —— 这就是「一份数据多方消费」。"},{"m":"07","t":"Kafka","q":"至少一次、最多一次、恰好一次，现实里怎么选？","a":"至少一次（at-least-once）：先处理后提交 offset，可能重复，不会丢。最常用。\n最多一次：先提交后处理，可能丢，不会重复。只适合可丢的场景（日志采样）。\n恰好一次：需要事务或幂等写入，实现复杂、性能有损耗。\n工程上的标准答案：用「至少一次 + 下游幂等」，比追求恰好一次划算得多。"},{"m":"07","t":"Kafka","q":"Kafka 为什么吞吐能这么高？","a":"三件事：顺序写磁盘（追加日志，避免随机寻道）、零拷贝（数据从页缓存直接送到网卡，不经过用户态）、批量 + 压缩（一次发一批，减少网络往返）。\n所以 Kafka 的「快」不是因为内存，而是因为把磁盘当成了顺序日志来用。"},{"m":"07","t":"Kafka","q":"消息保留多久，数据会被删吗？","a":"按时间（默认 7 天）或按大小（默认 1GB/分区）保留，超了就删最旧的。\n所以 Kafka 不是数据库，不能当长期存储用 —— 消费慢了的消费者会「丢数据」（offset 越界）。\n需要长期保留，就把数据落到湖/仓里（这就是 streaming 管道最后一步）。"},{"m":"07","t":"Kafka","q":"消息的 key 有什么用？","a":"key 决定分区：`hash(key) % partition数`。同一个 key 永远进同一个 partition，因此严格有序。\n用途：按用户 ID 做 key，保证同一用户的事件按顺序处理。\n不设 key 就轮询分布，吞吐均匀但无序 —— 需要顺序时必须设 key。"},{"m":"07","t":"Kafka","q":"schema registry 解决什么？","a":"生产者升级了消息格式（加字段、改类型），消费者还在按旧格式解析，直接崩。\nschema registry 存所有版本的 schema，生产前做兼容性检查：不兼容的变更直接拒绝发布。\n这是「数据契约」在流式场景的落地。"},{"m":"07","t":"流处理","q":"什么时候不该用 Kafka？","a":"数据量很小（每天几千条）：用数据库表 + 定时任务更简单。\n需要复杂查询和事务：Kafka 不是数据库。\n团队没人会运维：托管服务也会出问题，出问题时需要有人能看懂。\n判断标准：如果你的「实时」需求能容忍 5 分钟延迟，批处理往往更省事。"},{"m":"07","t":"流处理","q":"「实时」到底是多实时？","a":"业务说「要实时」，真实需求可能是「5 分钟内看到」，也可能是「毫秒级风控」，成本差几十倍。\n常见分档：秒级（流处理）、分钟级（微批）、小时/天级（批）。\n先问清楚「延迟 1 小时会怎样」，往往发现批处理就够了。","more":"这是数据工程里最值钱的一个提问习惯。"},{"m":"07","t":"流处理","q":"流处理里的「状态」指什么？","a":"跨事件要记住的东西：去重用的已见 ID、窗口内的累计值、会话的起止时间。\n状态要持久化（不然重启就丢）、要能过期清理（不然无限增长）、要考虑乱序（迟到事件怎么算）。\nSpark Structured Streaming 的 `stateStore`、Flink 的 checkpoint 都在解决这个。"},{"m":"07","t":"Kafka","q":"Kafka Connect 是什么，和写代码消费有什么区别？","a":"Connect 是「配置化的数据搬运工」：写个 JSON 说明源和目的，就能把 Postgres 的表同步到 Kafka，或写到 GCS。\n适合标准场景（数据库 CDC、对象存储落地），不用写代码、自带 offset 管理和重试。\n需要复杂转换时，还是得自己写 consumer / Structured Streaming。"},{"m":"07","t":"流处理","q":"流式管道怎么保证「重启后不重复不丢」？","a":"checkpoint 记录两件事：读到哪个 offset、聚合状态是什么。重启时从 checkpoint 恢复，接着上次的位置继续。\n要做到端到端精确一次，还得下游支持幂等或事务写入（比如按主键 merge）。\n只做 checkpoint 不做幂等写入，重启后仍可能重复 —— 这是很多人以为「开了 checkpoint 就没事」的误区。"},{"m":"00","t":"方法","q":"先跑通再理解，会不会养成坏习惯？","a":"不会，反而更高效。新手卡在「先把原理看完再动手」，结果看了三小时还没跑起来，挫败感拉满。\n正确顺序：先跑通一个最小例子（知道它能干什么）→ 改一个参数看变化（建立因果感）→ 再回去读原理（这时才有落点）。\n理解是「解释经验」，没有经验就没法理解。"},{"m":"00","t":"方法","q":"卡住的时候，怎么问才能得到答案？","a":"带上四样东西：想做什么、实际发生了什么（完整报错原文）、已经试过什么、环境信息（系统/版本）。\n「跑不起来」没人能帮；「docker compose up 报 port is already allocated，我已经 kill 了容器但还是这样」—— 这种描述十秒就能定位。\n另外：先自己搜报错原文加引号，八成有人踩过。"},{"m":"00","t":"方法","q":"笔记该记什么，不该记什么？","a":"不该记：官方文档里抄得下来的定义、命令参数表（查就行）。\n该记：我原来以为是这样、结果不是的地方；报错原文 + 怎么修好的；这个项目里为什么这么选。\n判断标准：三个月后回看，这条笔记能不能让我少踩一次坑。\n所以本学习台的笔记框按「节」存，就是让你记在踩坑的那一刻。"},{"m":"00","t":"职业","q":"结课项目怎么写才能进简历？","a":"别写「用 Spark 处理了数据」，要写「处理了 1200 万行纽约出租车数据，把日均报表生成时间从 40 分钟降到 6 分钟，用了分区裁剪 + broadcast join」。\n结构：业务问题 → 数据规模 → 技术选型及原因 → 遇到的坑和怎么解决 → 结果（数字）。\n招聘方看的是「你做过判断」，不是「你用过工具」。"},{"m":"00","t":"职业","q":"数据工程面试最常问的三个问题","a":"一、「你怎么保证管道重跑不产生重复数据？」—— 考幂等和分区覆盖。\n二、「数据量涨 100 倍，你的方案哪里会先崩？」—— 考你对瓶颈的理解。\n三、「上游改了 schema 你怎么知道？」—— 考测试、契约和监控意识。\n三个问题都不问工具细节，问的是判断力。"},{"m":"00","t":"方法","q":"每天只有 25 分钟，怎么学才不退步？","a":"固定时段 + 固定动作：每天一个知识卡（3 分钟）+ 一个视频小节（15 分钟）+ 写两行笔记（5 分钟）。\n关键是「不断线」：连续 7 天 20 分钟，胜过周末突击 3 小时。\n断了一天别自责，第二天接着来 —— 打卡记录是为了看见趋势，不是为了审判自己。"},{"m":"00","t":"方法","q":"为什么「看懂」和「会做」之间隔着一道墙？","a":"看视频时大脑在「跟随」，感觉很顺；自己动手时要「决策」，每个细节都要做选择，立刻卡住。\n所以每个模块至少要有一次「不看教程，从空目录开始搭一遍」。\n卡住的地方就是你真正没懂的地方，比看十遍视频有用。"},{"m":"00","t":"职业","q":"这门课的证书值得拿吗？","a":"证书本身在求职市场权重不高，但「拿到证书的过程」有价值：7 份作业 + 项目 + 互评，逼你把七个模块都动手过一遍。\n如果时间紧，优先做项目（能写进简历），作业挑跟自己方向相关的做。\n纯自学也有全部材料，只是没有排名和截止日 —— 那就自己定一个。"}];
+const MODS = {"00":"通用基础","01":"容器化 · Docker","02":"工作流编排","03":"数据仓库","04":"分析工程 dbt","05":"数据平台","06":"批处理 Spark","07":"流处理 Kafka"};
+
+(function () {
+  "use strict";
+  const $ = id => document.getElementById(id);
+  const FKEY = "dezc_kb_fav", KKEY = "dezc_kb_known", SKEY = "dezc_kb_streak", VKEY = "dezc_kb_seen";
+  const load = (k, d) => { try { return JSON.parse(localStorage.getItem(k) || "null") ?? d; } catch (e) { return d; } };
+  const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+
+  let favs = load(FKEY, []), known = load(KKEY, []), seen = load(VKEY, []);
+  let cur = 0, filter = "";
+
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const rich = s => esc(s).replace(/`([^`]+)`/g, "<code>$1</code>").replace(/\n/g, "<br>");
+  const modName = m => (MODS[m] || (m === "00" ? "通用 · 不绑模块" : "模块 " + m));
+
+  /* 每天换一条：用「距纪元的天数 × 步长」取模，周期覆盖全部条目，同一天刷新不变 */
+  function dayNo(d) { return Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000); }
+  const STEP = 37;
+  function todayIdx(off) {
+    const n = KB.length;
+    return ((dayNo(new Date()) * STEP + 11 + (off || 0)) % n + n) % n;
+  }
+
+  /* 打卡 */
+  function bumpStreak() {
+    const st = load(SKEY, { last: "", days: 0 });
+    const today = new Date().toISOString().slice(0, 10);
+    if (st.last !== today) {
+      const y = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+      st.days = st.last === y ? (st.days || 0) + 1 : 1;
+      st.last = today;
+      save(SKEY, st);
+    }
+    $("sk").textContent = st.days || 1;
+    return st;
+  }
+
+  function paint() {
+    const b = KB[cur];
+    const isFav = favs.indexOf(cur) >= 0, isKnown = known.indexOf(cur) >= 0;
+    $("card").innerHTML =
+      '<div class="chips">' +
+        '<span class="chip">' + esc(b.m === "00" ? "通用" : "模块 " + b.m) + "</span>" +
+        '<span class="chip t">' + esc(b.t) + "</span>" +
+        (isKnown ? '<span class="chip t" style="color:var(--ok);border-color:var(--ok)">已掌握</span>' : "") +
+      "</div>" +
+      '<h2 class="q">' + esc(b.q) + "</h2>" +
+      '<div class="a">' + rich(b.a) + "</div>" +
+      (b.try ? '<div class="try"><div class="lab">动手试</div><pre>' + esc(b.try) + "</pre></div>" : "") +
+      (b.more ? '<div class="more"><b>记一句：</b>' + rich(b.more) + "</div>" : "");
+
+    $("b-fav").classList.toggle("on", isFav);
+    $("b-fav").textContent = isFav ? "已收藏 ★" : "收藏";
+    $("b-known").classList.toggle("done", isKnown);
+    $("b-known").textContent = isKnown ? "已掌握 ✓" : "已掌握";
+    if (seen.indexOf(cur) < 0) { seen.push(cur); save(VKEY, seen); }
+    $("seen").textContent = seen.length;
+
+    // 另两条：同模块 + 跨模块各一，各带一点新东西
+    const picks = [];
+    const same = KB.map((x, i) => i).filter(i => i !== cur && KB[i].m === b.m);
+    const other = KB.map((x, i) => i).filter(i => i !== cur && KB[i].m !== b.m);
+    if (same.length) picks.push(same[(cur * 7 + 3) % same.length]);
+    if (other.length) picks.push(other[(cur * 13 + 5) % other.length]);
+    $("minis").innerHTML = picks.map(i =>
+      '<div class="mini" data-i="' + i + '" style="cursor:pointer">' +
+      '<div class="mm">' + esc(modName(KB[i].m)) + " · " + esc(KB[i].t) + "</div>" +
+      '<p class="mq">' + esc(KB[i].q) + "</p>" +
+      '<p class="ma">' + esc(KB[i].a.split("\n")[0]) + "</p></div>").join("") ||
+      '<div class="empty">没有更多</div>';
+
+    renderFavs();
+    renderBrowse();
+  }
+
+  function renderFavs() {
+    $("fav-n").textContent = favs.length ? "（" + favs.length + "）" : "";
+    $("favs").innerHTML = favs.length
+      ? favs.map(i => KB[i] ? '<div class="mini" data-i="' + i + '" style="cursor:pointer">' +
+          '<div class="mm">' + esc(modName(KB[i].m)) + "</div>" +
+          '<p class="mq">' + esc(KB[i].q) + "</p></div>" : "").join("")
+      : '<div class="empty">还没收藏。看到「原来如此」的，按一下收藏，考试前扫一遍比翻笔记快。</div>';
+  }
+
+  function renderBrowse() {
+    const list = KB.map((b, i) => ({ b, i })).filter(x => !filter || x.b.m === filter);
+    $("browse").innerHTML = list.map(x => {
+      const k = known.indexOf(x.i) >= 0, f = favs.indexOf(x.i) >= 0;
+      return '<div class="row' + (k ? " k" : "") + (f ? " fav" : "") + '" data-i="' + x.i + '">' +
+        '<span class="n">' + (x.i + 1) + "</span>" +
+        '<span class="b"><span class="bq">' + esc(x.b.q) + "</span>" +
+        '<span class="bm">' + esc(x.b.t) + (k ? " · 已掌握" : "") + "</span></span></div>";
+    }).join("") || '<div class="empty">这个模块还没有条目</div>';
+  }
+
+  function renderFilters() {
+    const keys = Object.keys(MODS);
+    $("filters").innerHTML = '<button class="f on" data-m="">全部</button>' +
+      keys.map(k => '<button class="f" data-m="' + k + '">' + esc(MODS[k]) + "</button>").join("");
+    $("filters").onclick = ev => {
+      const t = ev.target.closest(".f"); if (!t) return;
+      filter = t.getAttribute("data-m");
+      [...$("filters").children].forEach(c => c.classList.toggle("on", c === t));
+      renderBrowse();
+    };
+  }
+
+  function go(i) {
+    cur = ((i % KB.length) + KB.length) % KB.length;
+    paint();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  /* ---------- 事件 ---------- */
+  $("b-next").onclick = () => go(cur + 1 + Math.floor(Math.random() * (KB.length - 1)));
+  $("b-fav").onclick = () => {
+    const i = favs.indexOf(cur);
+    if (i >= 0) favs.splice(i, 1); else favs.unshift(cur);
+    save(FKEY, favs); paint();
+  };
+  $("b-known").onclick = () => {
+    const i = known.indexOf(cur);
+    if (i >= 0) known.splice(i, 1); else known.push(cur);
+    save(KKEY, known); paint();
+  };
+  $("b-copy").onclick = () => {
+    const b = KB[cur];
+    const txt = b.q + "\n\n" + b.a + (b.try ? "\n\n" + b.try : "") + (b.more ? "\n\n" + b.more : "");
+    try {
+      navigator.clipboard.writeText(txt).then(() => {
+        $("b-copy").textContent = "已复制";
+        setTimeout(() => { $("b-copy").textContent = "复制"; }, 1400);
+      }).catch(() => {});
+    } catch (e) {}
+  };
+  document.addEventListener("click", ev => {
+    const t = ev.target.closest("[data-i]");
+    if (!t || t.closest(".browse") === null && !t.classList.contains("mini")) return;
+    if (t.classList.contains("mini")) go(+t.getAttribute("data-i"));
+  });
+  document.addEventListener("keydown", ev => {
+    if (/^(INPUT|TEXTAREA)$/.test(ev.target.tagName)) return;
+    if (ev.key === "j" || ev.key === "J") { ev.preventDefault(); go(cur + 1); }
+    else if (ev.key === "k" || ev.key === "K") { ev.preventDefault(); go(cur - 1); }
+    else if (ev.key === "f" || ev.key === "F") { ev.preventDefault(); $("b-fav").click(); }
+  });
+
+  /* ---------- 启动 ---------- */
+  const now = new Date();
+  const WD = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
+  $("d-date").textContent = (now.getMonth() + 1) + " 月 " + now.getDate() + " 日";
+  $("d-week").textContent = WD[now.getDay()] + " · 今天这一条";
+  $("total").textContent = KB.length;
+  bumpStreak();
+  renderFilters();
+  cur = todayIdx(0);
+  paint();
+})();
+</script>
+</body>
+</html>
