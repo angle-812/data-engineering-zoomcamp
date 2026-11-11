@@ -616,6 +616,17 @@ const DATA = {"gh":"https://github.com/DataTalksClub/data-engineering-zoomcamp/b
     syncDoneBtn();
     markCurrentRow();
 
+    if (location.protocol === "file:") {
+      // 本地打开必然触发 YouTube 错误 153，别白等，直接给线上入口
+      showVeil("<h3>本地打开播不了，这是预期行为</h3>" +
+        "<p>YouTube 要求嵌入页有 http(s) 站点来源，<code>file://</code> 一律被拒（错误 153）。" +
+        "用线上版就能正常看，选集和进度都是同一份。</p>" +
+        '<div class="acts"><a class="primary" href="https://angle-812.github.io/data-engineering-zoomcamp/player.html" target="_blank" rel="noopener">打开线上版播放</a>' +
+        '<a href="' + ytOpen(EPS[idx].id) + '" target="_blank" rel="noopener">在 YouTube 打开这节</a>' +
+        '<button class="ghost" id="veil-try">就在本机试一下</button></div>');
+      $("veil-try").onclick = function () { hideVeil(); loadAPI(); };
+      return;
+    }
     loadAPI();
   })();
 
