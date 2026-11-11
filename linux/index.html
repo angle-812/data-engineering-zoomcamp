@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Linux 体系 · 命令行大全</title>
+<style>
+*{box-sizing:border-box}
+:root{
+  --bg:#f4f5f7; --card:#fff; --line:#e3e6ec; --line-soft:#eef0f4;
+  --text:#14171c; --muted:#657080; --muted-2:#8b94a2;
+  --accent:#2563eb; --accent-weak:#eaf0ff; --accent-line:#c9d8ff;
+  --ok:#0f9d58; --ok-weak:#e8f7ef; --warn:#b45309; --warn-weak:#fff5e6;
+  --radius:14px; --shadow:0 1px 2px rgba(16,24,40,.05),0 8px 24px rgba(16,24,40,.05);
+  --mono:"Cascadia Mono",Consolas,"Courier New",monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0d1014; --card:#15191f; --line:#262c35; --line-soft:#1f252d;
+    --text:#e8ecf2; --muted:#98a2b0; --muted-2:#79838f;
+    --accent:#74a3ff; --accent-weak:#182233; --accent-line:#2b3d5c;
+    --ok:#43c78a; --ok-weak:#12291f; --warn:#ffb454; --warn-weak:#2a2117;
+    --shadow:0 1px 2px rgba(0,0,0,.4);
+  }
+}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:15px/1.65 "Segoe UI","Microsoft YaHei",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.top{position:sticky;top:0;z-index:30;display:flex;gap:10px;align-items:center;
+  padding:10px 16px;background:var(--card);border-bottom:1px solid var(--line)}
+.back{font-size:13px;color:var(--muted)}
+.ttl{font-weight:650;font-size:15.5px}
+.ttl .dim{color:var(--muted);font-weight:400}
+.grow{flex:1}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:9px;
+  border:1px solid var(--line);background:var(--card);color:var(--text);font:inherit;
+  font-size:13px;cursor:pointer;transition:.15s}
+.btn:hover{border-color:var(--accent-line);background:var(--accent-weak);text-decoration:none}
+.btn.sm{padding:4px 9px;font-size:12.5px}
+.btn.go{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.go:hover{filter:brightness(1.06);background:var(--accent)}
+.stats{font-size:13px;color:var(--muted);margin-left:4px}
+.stats b{color:var(--accent);font-size:15px}
+
+/* ---------- 布局 ---------- */
+.grid{display:grid;grid-template-columns:264px minmax(0,1fr) 300px;gap:16px;
+  padding:16px;max-width:1840px;margin:0 auto;align-items:start}
+.side,.mid,.right{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow)}
+.side{position:sticky;top:66px;max-height:calc(100vh - 84px);overflow:auto;padding:10px}
+.mid{min-width:0;overflow:hidden;display:flex;flex-direction:column}
+.right{position:sticky;top:66px;max-height:calc(100vh - 84px);display:flex;flex-direction:column}
+
+/* ---------- 目录 ---------- */
+.ptitle{display:flex;align-items:center;gap:8px;padding:9px 8px 5px;font-size:12px;
+  color:var(--muted);letter-spacing:.04em;cursor:pointer;user-select:none}
+.ptitle .pn{font-weight:700;color:var(--accent)}
+.ptitle .cnt{margin-left:auto;font-size:11px;color:var(--muted-2)}
+.ch{display:flex;gap:8px;align-items:flex-start;width:100%;padding:7px 9px;border:0;
+  background:none;border-radius:9px;cursor:pointer;text-align:left;color:inherit;
+  font:inherit;font-size:13.5px;line-height:1.45}
+.ch:hover{background:var(--line-soft)}
+.ch.cur{background:var(--accent-weak);box-shadow:inset 3px 0 0 var(--accent)}
+.ch.done .no{background:var(--ok);color:#fff;border-color:var(--ok)}
+.no{flex:0 0 22px;height:22px;border-radius:6px;border:1px solid var(--line);
+  display:grid;place-items:center;font:600 11px/1 var(--mono);color:var(--muted);margin-top:1px}
+.ch.cur .no{background:var(--accent);color:#fff;border-color:var(--accent)}
+.ct{flex:1;min-width:0}
+.ct .de{display:inline-block;margin-left:6px;font-size:10.5px;color:var(--accent);
+  background:var(--accent-weak);border:1px solid var(--accent-line);border-radius:5px;padding:0 4px}
+
+/* ---------- 章头 ---------- */
+.chead{padding:14px 18px 12px;border-bottom:1px solid var(--line-soft)}
+.chead h1{margin:0 0 4px;font-size:19px;font-weight:680}
+.chead .meta{font-size:12.5px;color:var(--muted);display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.chead .lead{font-size:13.5px;color:var(--muted);margin:8px 0 0}
+.tag{font-size:11.5px;padding:1px 7px;border-radius:6px;background:var(--accent-weak);
+  color:var(--accent);border:1px solid var(--accent-line)}
+
+/* ---------- 视频 ---------- */
+.vwrap{background:#000;position:relative;aspect-ratio:16/9;max-height:46vh}
+.vwrap iframe{width:100%;height:100%;border:0;display:block}
+.vempty{position:absolute;inset:0;display:grid;place-items:center;text-align:center;
+  color:#c9d1db;background:#0f1318;padding:20px}
+.vempty .t{font-size:14px;margin-bottom:10px}
+.vlinks{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+
+/* ---------- 标签 ---------- */
+.tabs{display:flex;gap:6px;padding:10px 14px 0;border-bottom:1px solid var(--line)}
+.tab{padding:7px 13px;border:1px solid transparent;border-bottom:0;border-radius:9px 9px 0 0;
+  background:none;color:var(--muted);font:inherit;font-size:13.5px;cursor:pointer}
+.tab.on{background:var(--card);border-color:var(--line);color:var(--text);font-weight:600;
+  box-shadow:0 -2px 0 var(--accent) inset}
+.pane{padding:16px 20px 24px;overflow:auto;max-height:calc(100vh - 400px);min-height:320px}
+
+/* ---------- 原文 ---------- */
+.pdfch h2{font-size:17px;margin:0 0 12px}
+.pdfch h3{font-size:14.5px;margin:18px 0 6px;color:var(--accent)}
+.pdfch p{margin:0 0 10px;text-align:justify}
+.pdfch ul{margin:6px 0 12px;padding-left:1.3em}
+.pdfch li{margin:3px 0}
+.pdfch pre,.code{font-family:var(--mono);font-size:12.8px;background:var(--line-soft);
+  border:1px solid var(--line);border-radius:8px;padding:10px 12px;overflow:auto;margin:8px 0}
+.pdfch .cap{font-size:12.5px;color:var(--muted)}
+
+/* ---------- 命令卡 ---------- */
+.cmd{border:1px solid var(--line);border-radius:11px;padding:11px 13px;margin-bottom:10px;
+  background:var(--card)}
+.cmd .k{font-family:var(--mono);font-weight:650;font-size:14px;color:var(--accent)}
+.cmd .d{font-size:13px;color:var(--muted);margin:3px 0 0}
+.cmd .ex{position:relative;margin-top:8px}
+.cmd .ex pre{margin:0;font-family:var(--mono);font-size:12.6px;background:var(--line-soft);
+  border:1px solid var(--line);border-radius:8px;padding:8px 40px 8px 10px;overflow:auto}
+.copy{position:absolute;top:5px;right:5px;border:1px solid var(--line);background:var(--card);
+  border-radius:6px;font-size:11px;padding:2px 7px;cursor:pointer;color:var(--muted)}
+.copy:hover{color:var(--accent);border-color:var(--accent-line)}
+
+/* ---------- 练习 ---------- */
+.ex{border-left:3px solid var(--ok);padding:2px 0 2px 12px;margin-bottom:16px}
+.ex .t{font-weight:600;font-size:14px}
+.ex .note{font-size:12.5px;color:var(--muted);margin-top:4px}
+.ex .ex{margin-top:8px}
+
+/* ---------- 右栏 ---------- */
+.rhead{padding:12px 14px 8px;border-bottom:1px solid var(--line-soft);font-size:13px;
+  font-weight:600;display:flex;align-items:center;gap:8px}
+.rhead .grow{flex:1}
+.note-box{flex:1;display:flex;flex-direction:column;min-height:0;padding:10px 12px}
+.note-box textarea{flex:1;min-height:150px;resize:vertical;border:1px solid var(--line);
+  border-radius:9px;padding:9px 11px;font:13px/1.6 var(--mono);background:var(--bg);color:var(--text)}
+.note-box textarea:focus{outline:2px solid var(--accent-line);outline-offset:1px}
+.nfoot{display:flex;gap:8px;font-size:11.5px;color:var(--muted-2);padding-top:6px}
+.info{padding:10px 14px 14px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line-soft)}
+.info b{color:var(--text);font-weight:600}
+.kv{display:flex;gap:6px;margin:3px 0}
+.kv .k{color:var(--muted-2);flex:0 0 52px}
+.kv .v{color:var(--text);font-family:var(--mono);font-size:12px;word-break:break-all}
+.mono{font-family:var(--mono);font-size:12.5px}
+
+/* ---------- 弹层 ---------- */
+.modal{position:fixed;inset:0;background:rgba(9,12,16,.55);z-index:60;display:grid;place-items:center;padding:20px}
+.modal[hidden]{display:none}
+.mbox{background:var(--card);border-radius:16px;max-width:620px;width:100%;max-height:84vh;
+  overflow:auto;box-shadow:0 24px 60px rgba(0,0,0,.3)}
+.mtop{display:flex;align-items:center;padding:14px 18px;border-bottom:1px solid var(--line)}
+.mtop b{flex:1}
+.mbody{padding:14px 18px 20px;font-size:13.5px}
+.mbody h4{margin:14px 0 6px;font-size:13.5px}
+.mbody ol,.mbody ul{padding-left:1.3em;margin:6px 0}
+.mbody li{margin:4px 0}
+
+@media (max-width:1500px){.grid{grid-template-columns:240px minmax(0,1fr) 270px}}
+@media (max-width:1220px){
+  .grid{grid-template-columns:230px minmax(0,1fr)}
+  .right{grid-column:1 / -1;position:static;max-height:none}
+  .pane{max-height:none}
+}
+@media (max-width:880px){
+  .grid{grid-template-columns:1fr;padding:10px}
+  .side{position:static;max-height:260px}
+}
+
+.hero{padding:30px 20px 8px;max-width:1840px;margin:0 auto}
+.hero h1{margin:0;font-size:26px;letter-spacing:-.01em}
+.hero p{margin:8px 0 0;color:var(--muted);max-width:760px}
+.wrap{max-width:1840px;margin:0 auto;padding:14px 20px 60px;display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px;align-items:start}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow);padding:16px 18px}
+.card h2{margin:0 0 4px;font-size:15.5px;display:flex;align-items:center;gap:8px}
+.card h2 .n{font-family:var(--mono);font-size:12px;color:var(--accent);
+  background:var(--accent-weak);border:1px solid var(--accent-line);border-radius:6px;padding:1px 6px}
+.card .sub{font-size:12.5px;color:var(--muted);margin:0 0 12px}
+.bar{height:6px;border-radius:99px;background:var(--line-soft);overflow:hidden;margin:10px 0 6px}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:.3s}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:8px;
+  border:1px solid var(--line);font-size:12.5px;color:var(--text);background:var(--card)}
+.chip:hover{border-color:var(--accent-line);background:var(--accent-weak);text-decoration:none}
+.chip.done{background:var(--ok-weak);border-color:var(--ok);color:var(--ok)}
+.chip .no{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.chip.done .no{color:var(--ok)}
+table.map{width:100%;border-collapse:collapse;font-size:13px}
+table.map th,table.map td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line-soft);
+  vertical-align:top}
+table.map th{font-size:12px;color:var(--muted);font-weight:600}
+table.map td a{white-space:nowrap}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.today .q{font-family:var(--mono);font-size:16px;color:var(--accent);font-weight:650;margin:6px 0 2px}
+.today .d{font-size:13px;color:var(--muted)}
+.today pre{font-family:var(--mono);font-size:12.6px;background:var(--line-soft);
+  border:1px solid var(--line);border-radius:8px;padding:9px 11px;margin:9px 0 0;overflow:auto}
+.kv{display:flex;gap:8px;margin:4px 0;font-size:13px}
+.kv .k{color:var(--muted-2);flex:0 0 54px}
+.kv .v{font-family:var(--mono);font-size:12.5px;word-break:break-all}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:760px){.split{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <a class="back" href="../index.html">← DE 看板</a>
+  <div class="ttl">Linux 体系 <span class="dim">· 命令行大全</span></div>
+  <div class="grow"></div>
+  <a class="btn sm" href="cheatsheet.html">命令速查</a>
+  <a class="btn go sm" href="player.html" id="btn-continue">继续学习</a>
+</div>
+
+<div class="hero">
+  <h1><span id="ch-count">37</span> 章，一条从「会敲命令」到「能写脚本」的路</h1>
+  <p>正文来自你桌面那本《Linux 命令行大全》（505 页），每章配了命令卡、虚拟机练习和视频；
+     和 Data Engineering Zoomcamp 是两套独立的体系，靠「配合」关系互通——学到哪章，能直接看到它在课程里顶什么用。</p>
+  <div class="bar" style="max-width:420px"><i id="bar-all" style="width:0"></i></div>
+  <div style="font-size:13px;color:var(--muted)"><b id="st-done" style="color:var(--accent)">0</b> / <span id="st-total">37</span> 章完成</div>
+</div>
+
+<div class="wrap" id="parts"></div>
+
+<div class="wrap" style="grid-template-columns:1fr;padding-top:0">
+  <div class="split">
+    <div class="card">
+      <h2>和 DE 课程怎么配合</h2>
+      <p class="sub">左边是你的 Linux 体系，右边是课程的模块。学完这些章，课程里那些「照着敲就行」的步骤你就能自己改。</p>
+      <table class="map" id="map"></table>
+    </div>
+    <div class="card today">
+      <h2>今日一命令</h2>
+      <p class="sub">按日期固定轮换，同一天刷新不变。点章节号看它出自哪一章。</p>
+      <div id="today"></div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap" style="grid-template-columns:1fr;padding-top:0">
+  <div class="card">
+    <h2>动手的地方：Rocky Linux</h2>
+    <p class="sub">学习台里的命令要真的敲一遍。这台机器上已经有一台 Rocky Linux，FinalShell 里存好了连接。</p>
+    <div class="split">
+      <div>
+        <div class="kv"><span class="k">主机</span><span class="v" id="vm-host"></span></div>
+        <div class="kv"><span class="k">用户</span><span class="v" id="vm-user"></span></div>
+        <div class="kv"><span class="k">端口</span><span class="v" id="vm-port"></span></div>
+        <div class="kv"><span class="k">虚拟化</span><span class="v">VMware · NAT</span></div>
+      </div>
+      <div>
+        <p style="font-size:13px;margin:0 0 8px">双击桌面上的 <b>启动 Linux 环境</b>：自动开虚拟机、等 SSH 通了再唤起 FinalShell。</p>
+        <p style="font-size:12.5px;color:var(--muted);margin:0">连不上先看：虚拟机里 <span class="mono">ip a</span> 的地址变没变、<span class="mono">systemctl status sshd</span> 起没起。</p>
+      </div>
+    </div>
+    <div class="actions">
+      <a class="btn" href="player.html?ch=1">从第 1 章开始</a>
+      <a class="btn" href="cheatsheet.html">打开命令速查</a>
+      <a class="btn" href="tlcl-cn.pdf" target="_blank" rel="noopener">打开原书 PDF</a>
+    </div>
+  </div>
+</div>
+
+<script>var DATA = {"chapters":[{"no":1,"t":"引言 · 为什么还要学命令行","p":1,"lead":"图形界面能做的事有限。命令行更快、能自动化、能远程、能写进脚本，而且四十多年没变过——学会一次，终身受用。","cmds":[],"ex":[],"de":[],"lec":null,"pg":[18,22]},{"no":2,"t":"什么是 shell","p":1,"lead":"终端只是个窗口，真正干活的是 shell。它读你敲的一行字，翻译成系统调用。","cmds":[{"k":"echo","d":"把参数打印出来，最原始的调试手段","ex":"echo hello  $USER"},{"k":"date","d":"看时间，脚本里常用来打时间戳","ex":"date +%F  date +%H:%M:%S"},{"k":"cal","d":"看日历","ex":"cal 2027"},{"k":"df -h","d":"各分区用了多少、还剩多少","ex":"df -h"},{"k":"free -h","d":"内存和 swap 的占用","ex":"free -h"},{"k":"exit","d":"退出当前 shell（Ctrl-D 同效）","ex":"exit"}],"ex":[{"t":"把第一个命令敲出来","c":"echo Hello Linux","note":"命令是「程序名 + 参数」，中间用空格隔开。"},{"t":"确认你是谁、在哪台机器上","c":"whoami; hostname; pwd","note":""}],"de":["01"],"lec":"shell","pg":[23,26]},{"no":3,"t":"文件系统中跳转","p":1,"lead":"Linux 只有一棵树，所有设备都挂在树上。学会「我在哪、怎么去别处」。","cmds":[{"k":"pwd","d":"打印当前工作目录（print working directory）","ex":"pwd"},{"k":"cd","d":"切换目录；cd 不带参数回 home，cd - 回上一个目录","ex":"cd /var/log  cd -  cd ~"},{"k":"ls","d":"列目录内容（细节在第 3 章）","ex":"ls  ls /etc"},{"k":"cd ..","d":"上一级；../.. 是上两级","ex":"cd ../.."}],"ex":[{"t":"走到 /etc 再回到 home，用 cd - 来回切","c":"cd /etc; pwd; cd -; pwd","note":"cd - 在两个目录间反复横跳，调试时特别好用。"},{"t":"分清绝对路径和相对路径","c":"cd /usr/bin; pwd; cd ../../var; pwd","note":""}],"de":["01"],"lec":"shell","pg":[27,32]},{"no":4,"t":"探究操作系统","p":1,"lead":"ls -l 那串 rwxr-xr-x 是后面所有权限问题的源头，先在第一章里看懂它。","cmds":[{"k":"ls -lh","d":"长格式 + 人类可读的文件大小","ex":"ls -lh /var/log"},{"k":"ls -lt","d":"按修改时间排序，最近改的在最上面","ex":"ls -lt | head"},{"k":"file","d":"猜文件真实类型（扩展名不算数）","ex":"file /bin/ls"},{"k":"less","d":"分页看文件，q 退出，/ 搜索","ex":"less /etc/services"},{"k":"stat","d":"看文件的全部元信息（大小、权限、时间）","ex":"stat /etc/passwd"}],"ex":[{"t":"用长格式看清 /var/log 里谁最大","c":"ls -lSh /var/log | head -5","note":"S 按大小排，h 用 M/G 显示。"},{"t":"确认一个没扩展名的文件到底是什么","c":"file $(which ls)","note":""}],"de":["01"],"lec":"shell","pg":[33,43]},{"no":5,"t":"操作文件和目录","p":1,"lead":"建、拷、移、删、连。注意：Linux 没有回收站，rm 就是真删。","cmds":[{"k":"mkdir -p","d":"建目录，-p 连父目录一起建","ex":"mkdir -p ~/lab/01/{data,log}"},{"k":"cp -r","d":"复制，目录必须 -r","ex":"cp -r src/ dst/"},{"k":"mv","d":"移动或改名（同一个命令）","ex":"mv a.txt b.txt"},{"k":"rm -r","d":"删目录；rm -rf 是最后手段，敲之前先 ls 一遍","ex":"rm -r tmp/"},{"k":"ln -s","d":"建软链接，相当于 Windows 快捷方式","ex":"ln -s /data/app app"},{"k":"touch","d":"把文件时间戳更新成现在（文件不存在则新建）","ex":"touch a.log"}],"ex":[{"t":"搭一个练习用的目录树","c":"mkdir -p ~/lab/{data,code,log} && cd ~/lab && ls -R","note":""},{"t":"用通配符批量改名","c":"cd ~/lab/data && touch a{1..5}.csv && ls","note":"后面第 7 章会讲 {1..5} 为什么能展开。"}],"de":["01"],"lec":"shell","pg":[44,59]},{"no":6,"t":"使用命令","p":1,"lead":"忘了某个命令怎么用？这一章教你「不需要背命令」的方法。","cmds":[{"k":"type","d":"这个命令是内建、别名，还是磁盘上的程序","ex":"type cd  type ls"},{"k":"which","d":"可执行文件装在哪","ex":"which python3"},{"k":"man","d":"看手册；man -k 关键词 等于 apropos","ex":"man rsync  man -k network"},{"k":"apropos","d":"按关键词找命令（比记住名字重要）","ex":"apropos 'copy files'"},{"k":"alias","d":"起别名，写进 .bashrc 才长期有效","ex":"alias ll='ls -lh'"},{"k":"--help","d":"绝大多数命令都支持的速查参数","ex":"tar --help | head -30"}],"ex":[{"t":"用 apropos 找出所有和「压缩」有关的命令","c":"apropos compress | head","note":"找不到时先 sudo mandb 更新索引。"},{"t":"给 ll 起个别名，然后让它永久生效","c":"echo \"alias ll='ls -lh'\" >> ~/.bashrc; source ~/.bashrc; ll","note":""}],"de":["01","02"],"lec":"tools","pg":[60,69]},{"no":7,"t":"重定向","p":1,"lead":"Linux 的核心哲学：每个程序都只做一件事，用管道把小事拼成大事。","cmds":[{"k":"> / >>","d":"覆盖写 / 追加写","ex":"echo hi > a.txt  echo hi >> a.txt"},{"k":"2>","d":"只重定向错误输出（fd=2）","ex":"cmd 2> err.log"},{"k":"&>","d":"正确和错误一起收（bash 写法）","ex":"cmd &> all.log"},{"k":"|","d":"管道：前一个的输出 = 后一个的输入","ex":"ps aux | grep python"},{"k":"tee","d":"既写文件又往下传，排错时常用","ex":"cmd | tee run.log"},{"k":"<","d":"拿文件当标准输入","ex":"wc -l < a.txt"}],"ex":[{"t":"把正确和错误分开存两个文件","c":"ls /etc /nope > out.txt 2> err.txt; cat err.txt","note":""},{"t":"统计当前目录有多少个文件","c":"ls -1 | wc -l","note":""}],"de":["01","02"],"lec":"tools","pg":[70,81]},{"no":8,"t":"从 shell 眼中看世界","p":1,"lead":"引号、变量、通配符在命令执行前就被替换掉了——理解这一层，很多「玄学报错」就不玄了。","cmds":[{"k":"* ? [ ]","d":"通配符：任意多 / 任意一个 / 字符集合","ex":"ls *.csv  ls data?.txt  ls [abc]*"},{"k":"{a,b}","d":"花括号展开，生成多个参数","ex":"mkdir -p proj/{src,docs}"},{"k":"$()","d":"命令替换：把命令的输出塞进命令行","ex":"echo \"today is $(date +%F)\""},{"k":"\"\"","d":"双引号：变量会展开，空格被保护","ex":"echo \"$HOME\""},{"k":"''","d":"单引号：里面一律原样，不展开","ex":"echo '$HOME'"},{"k":"\\","d":"转义单个字符","ex":"echo a\\ b"}],"ex":[{"t":"对比单引号和双引号","c":"echo \"$HOME\"; echo '$HOME'","note":"看清楚哪次展开了变量。"},{"t":"用花括号一次建 12 个月份目录","c":"mkdir -p ~/lab/m{01..12} && ls ~/lab | head","note":""}],"de":["04"],"lec":"tools","pg":[82,93]},{"no":9,"t":"键盘高级操作技巧","p":1,"lead":"这批快捷键能把你的输入效率提高一倍，值得花 20 分钟练成肌肉记忆。","cmds":[{"k":"Ctrl-R","d":"反向搜索历史命令，最值得练的一个","ex":"Ctrl-R 然后输入 docker"},{"k":"Ctrl-A / Ctrl-E","d":"光标跳到行首 / 行尾","ex":""},{"k":"Ctrl-U / Ctrl-K","d":"删到行首 / 删到行尾","ex":""},{"k":"Ctrl-W","d":"删掉光标前一个单词","ex":""},{"k":"Alt-.","d":"把上一条命令的最后一个参数粘过来","ex":""},{"k":"history / !n","d":"看历史；!n 重跑第 n 条，!! 重跑上一条","ex":"history | tail  !!"}],"ex":[{"t":"把「sudo 忘了加」救回来","c":"apt install nginx  然后  sudo !!","note":"!! 会连参数一起带过来。"},{"t":"用 Ctrl-R 找回三天前那条 rsync","c":"Ctrl-R → rsync","note":""}],"de":[],"lec":"cli","pg":[94,102]},{"no":10,"t":"权限","p":1,"lead":"Permission denied 是 Linux 报得最多的一句话。rwx 三个位、三组人，就这么点事。","cmds":[{"k":"id","d":"看我是谁、属于哪些组","ex":"id"},{"k":"chmod","d":"改权限；755/644 是数字写法，u+x 是符号写法","ex":"chmod 755 run.sh  chmod u+x run.sh"},{"k":"chown","d":"改属主和属组","ex":"sudo chown -R yuang:yuang app/"},{"k":"umask","d":"新建文件的默认权限掩码","ex":"umask 022"},{"k":"sudo","d":"以 root 身份跑一条命令（比 su 更安全）","ex":"sudo systemctl restart docker"},{"k":"su -","d":"切换用户，并加载对方的环境","ex":"su - root"}],"ex":[{"t":"把一个脚本变成可执行","c":"echo 'echo hi' > ~/hi.sh; chmod +x ~/hi.sh; ./hi.sh","note":"不加 x 就只能 bash ~/hi.sh 运行。"},{"t":"看懂 /etc/shadow 为什么读不了","c":"ls -l /etc/shadow; id","note":"对普通用户来说它是 000 权限。"}],"de":["01"],"lec":"cli","pg":[103,122]},{"no":11,"t":"进程","p":1,"lead":"容器、后台任务、端口被占——底下的东西都是进程。会看 ps 和 kill 就够用一辈子。","cmds":[{"k":"ps aux","d":"列出所有进程，常配 grep 用","ex":"ps aux | grep docker"},{"k":"top / htop","d":"实时看 CPU、内存，q 退出","ex":"top"},{"k":"kill","d":"给进程发信号；-9 是强杀，先试 -15","ex":"kill 1234  kill -9 1234"},{"k":"jobs / fg / bg","d":"看后台任务、切回前台、丢到后台","ex":"jobs  fg %1"},{"k":"Ctrl-Z","d":"把当前进程挂起（不是结束）","ex":"Ctrl-Z 然后 bg"},{"k":"nohup … &","d":"关掉终端也不死的后台进程","ex":"nohup python job.py &"}],"ex":[{"t":"起一个睡 300 秒的进程，找到它，杀掉","c":"sleep 300 & jobs; ps aux | grep sleep; kill %1","note":""},{"t":"看看到底谁占着 8080 端口","c":"ss -tulnp | grep 8080","note":"ss 是 netstat 的现代替代。"}],"de":["02","06","07"],"lec":"cli","pg":[123,135]},{"no":12,"t":"shell 环境","p":2,"lead":"PATH、.bashrc、export——为什么装了软件却提示 command not found，答案基本都在这一章。","cmds":[{"k":"echo $PATH","d":"看命令都从哪些目录找","ex":"echo $PATH | tr ':' '\\n'"},{"k":"export","d":"设环境变量并传给子进程","ex":"export PG_HOST=localhost"},{"k":"source / .","d":"在当前 shell 里重新加载配置文件","ex":"source ~/.bashrc"},{"k":"~/.bashrc","d":"每次开交互式 shell 都执行；写 alias 和 PATH 放这里","ex":"vim ~/.bashrc"},{"k":"env","d":"列出当前所有环境变量","ex":"env | grep -i proxy"},{"k":"set / unset","d":"看全部 shell 变量 / 删一个","ex":"unset http_proxy"}],"ex":[{"t":"加一个自己的 bin 目录进 PATH","c":"mkdir -p ~/bin; echo 'export PATH=$HOME/bin:$PATH' >> ~/.bashrc; source ~/.bashrc","note":""},{"t":"确认变量有没有真的传进子进程","c":"export FOO=1; bash -c 'echo $FOO'","note":""}],"de":["02"],"lec":"tools","pg":[136,147]},{"no":13,"t":"vi 简介","p":2,"lead":"服务器上不一定有 nano，但一定有 vi。会十个按键就能改配置文件。","cmds":[{"k":"i / a / o","d":"进入插入模式：当前位置 / 后一位 / 下一行","ex":"按 i 开始打字"},{"k":"Esc","d":"回到普通模式（迷路就按它）","ex":"Esc"},{"k":":w / :q / :wq / :q!","d":":w 存盘，:q 退出，:q! 不存强退","ex":":wq"},{"k":"dd / yy / p","d":"删一行 / 复制一行 / 粘贴","ex":"dd  yy p"},{"k":"/word","d":"向下搜索，n 下一个","ex":"/listen"},{"k":"gg / G","d":"跳到文件头 / 文件尾","ex":"G"}],"ex":[{"t":"用 vi 改一个配置并保存","c":"vi ~/lab/note.txt  → i 输入 → Esc → :wq","note":""},{"t":"改错了不保存退出","c":"vi ~/lab/note.txt → i 乱敲 → Esc → :q!","note":""}],"de":[],"lec":"vim","pg":[148,165]},{"no":14,"t":"自定制 shell 提示符","p":2,"lead":"把 PS1 改好，能一眼看出「我是谁、在哪、上条命令成没成」。","cmds":[{"k":"PS1","d":"提示符格式串","ex":"PS1='\\u@\\h:\\w\\$ '"},{"k":"\\u \\h \\w","d":"用户名 / 主机名 / 当前目录","ex":"PS1='[\\w]\\$ '"},{"k":"\\$","d":"普通用户显示 $，root 显示 #","ex":""},{"k":"echo $PS1","d":"看当前格式，改坏了能还原","ex":"echo $PS1"},{"k":"\\[ \\]","d":"把颜色控制符包起来，否则光标会错位","ex":"PS1='\\[\\e[32m\\]\\w\\[\\e[0m\\] $ '"}],"ex":[{"t":"把提示符改成「路径 + $」并永久生效","c":"echo \"PS1='[\\\\w]\\\\$ '\" >> ~/.bashrc; source ~/.bashrc","note":""}],"de":[],"lec":"cli","pg":[166,173]},{"no":15,"t":"软件包管理","p":2,"lead":"Rocky 用 dnf（旧名 yum）。装 Docker、装 Python 库、查某个命令属于哪个包，都在这。","cmds":[{"k":"dnf install","d":"装包","ex":"sudo dnf install -y git"},{"k":"dnf remove","d":"卸包","ex":"sudo dnf remove git"},{"k":"dnf search / info","d":"找包 / 看包详情","ex":"dnf search docker"},{"k":"dnf provides","d":"某个命令是哪个包提供的","ex":"dnf provides */ss"},{"k":"dnf list installed","d":"已经装了哪些","ex":"dnf list installed | grep python"},{"k":"rpm -qa","d":"从 rpm 层面列已安装包","ex":"rpm -qa | grep -i docker"}],"ex":[{"t":"查 ss 命令属于哪个包","c":"dnf provides */ss","note":"换机器时靠它快速补齐工具。"},{"t":"装 git 并确认版本","c":"sudo dnf install -y git && git --version","note":""}],"de":["01","05"],"lec":"meta","pg":[174,182]},{"no":16,"t":"存储媒介","p":2,"lead":"df / lsblk / mount：数据工程里磁盘满是最常见的半夜告警。","cmds":[{"k":"df -h","d":"各挂载点用了多少（先看这个）","ex":"df -h"},{"k":"du -sh *","d":"当前目录下每个东西占多大","ex":"du -sh /var/log/*"},{"k":"lsblk","d":"块设备树，看盘和分区","ex":"lsblk"},{"k":"mount / umount","d":"挂载 / 卸载","ex":"sudo mount /dev/sdb1 /mnt"},{"k":"blkid","d":"看分区的 UUID 和文件系统类型","ex":"sudo blkid"},{"k":"/etc/fstab","d":"开机自动挂载表，写错会起不来","ex":"cat /etc/fstab"}],"ex":[{"t":"找出最占空间的三个目录","c":"du -sh /var/* 2>/dev/null | sort -h | tail -3","note":""},{"t":"看新的数据盘有没有被识别","c":"lsblk -f","note":""}],"de":["01","06"],"lec":"meta","pg":[183,201]},{"no":17,"t":"网络系统","p":2,"lead":"这一章对 DE 课程最关键：端口、SSH、隧道、curl——连不上数据库多半是这里。","cmds":[{"k":"ip a","d":"看本机 IP 和网卡","ex":"ip a"},{"k":"ss -tulnp","d":"谁在监听哪个端口（替代 netstat）","ex":"sudo ss -tulnp"},{"k":"ping / dig","d":"通不通 / 域名解析对不对","ex":"ping -c 3 8.8.8.8  dig +short google.com"},{"k":"curl","d":"发 HTTP 请求，调 API 的第一步","ex":"curl -sS http://localhost:8080/health"},{"k":"ssh","d":"远程登录；-L 做端口转发（连内网数据库靠它）","ex":"ssh yuang@192.168.100.129  ssh -L 5432:localhost:5432 user@host"},{"k":"scp / rsync","d":"传文件 / 增量同步","ex":"scp a.csv yuang@host:/tmp/  rsync -av data/ host:/data/"}],"ex":[{"t":"确认自己的 IP 和 SSH 端口","c":"ip -4 a; sudo ss -tulnp | grep :22","note":""},{"t":"用 curl 看一个接口返回什么","c":"curl -sS -o /dev/null -w '%{http_code}\\n' https://www.baidu.com","note":""}],"de":["01","03","07"],"lec":"sec","pg":[202,215]},{"no":18,"t":"查找文件","p":3,"lead":"find 是 Linux 里最被低估的命令：按名字、大小、时间、内容找，还能直接对结果批量执行。","cmds":[{"k":"find -name","d":"按名字找（区分大小写，-iname 不区分）","ex":"find . -name '*.csv'"},{"k":"find -type","d":"f 文件 / d 目录","ex":"find /var -type d -name log"},{"k":"find -size","d":"按大小：+100M 大于，-1k 小于","ex":"find / -size +500M -type f 2>/dev/null"},{"k":"find -mtime","d":"按修改时间（天）：-1 一天内","ex":"find . -mtime -1 -name '*.log'"},{"k":"find -exec","d":"对每个结果执行命令，{} 是占位符","ex":"find . -name '*.tmp' -exec rm {} \\;"},{"k":"xargs","d":"把结果变成参数，比 -exec 快","ex":"find . -name '*.csv' | xargs wc -l"}],"ex":[{"t":"找出家目录里所有大于 100M 的文件","c":"find ~ -type f -size +100M 2>/dev/null","note":""},{"t":"删掉七天前的日志（先看一眼再删）","c":"find ~/lab -name '*.log' -mtime +7 -print  →  确认后把 -print 换成 -delete","note":""}],"de":["04"],"lec":"data","pg":[216,232]},{"no":19,"t":"归档和备份","p":3,"lead":"tar 那串参数不用背，记住「打包 czf、解开 xzf」两个动作就够了。","cmds":[{"k":"tar czf","d":"打包并 gzip 压缩","ex":"tar czf data.tar.gz data/"},{"k":"tar xzf","d":"解包","ex":"tar xzf data.tar.gz"},{"k":"tar tzf","d":"先看看包里有什么","ex":"tar tzf data.tar.gz | head"},{"k":"gzip / gunzip","d":"单文件压缩（原文件会被替换）","ex":"gzip big.log"},{"k":"zip / unzip","d":"和 Windows 交换文件用这个","ex":"zip -r out.zip dir/"},{"k":"rsync -av","d":"增量同步，最靠谱的备份方式","ex":"rsync -av --delete src/ dst/"}],"ex":[{"t":"把练习目录打包，再解开到别处","c":"tar czf ~/lab.tar.gz ~/lab && mkdir ~/restore && tar xzf ~/lab.tar.gz -C ~/restore","note":""},{"t":"用 rsync 做一次镜像备份","c":"rsync -av ~/lab/ ~/lab-backup/","note":"--delete 会让目标端和源端完全一致，小心用。"}],"de":["06"],"lec":"data","pg":[233,248]},{"no":20,"t":"正则表达式","p":3,"lead":"写日志解析、清洗 CSV，全靠这几个符号。先记 grep -E，其他慢慢补。","cmds":[{"k":"grep -E","d":"用扩展正则匹配行","ex":"grep -E 'ERROR|WARN' app.log"},{"k":"^ $","d":"行首 / 行尾","ex":"grep -E '^2026' app.log"},{"k":". * + ?","d":"任意一个 / 任意多个 / 一到多个 / 零或一个","ex":"grep -E '[0-9]{3,}' app.log"},{"k":"[ ] { }","d":"字符集合 / 重复次数","ex":"grep -E '[A-Z]{2}[0-9]{4}'"},{"k":"( ) |","d":"分组和或，配合 sed 反引用","ex":"sed -E 's/(\\w+)@(\\w+)/\\2:\\1/'"},{"k":"grep -v -i -c","d":"反向 / 忽略大小写 / 只数行数","ex":"grep -vic error app.log"}],"ex":[{"t":"从日志里挑出所有 5xx 请求","c":"grep -E 'HTTP/[0-9.]+\\\" 5[0-9]{2}' access.log | head","note":""},{"t":"统计日志里出现最多的 IP","c":"awk '{print $1}' access.log | sort | uniq -c | sort -rn | head","note":"下一章就是这些命令的主场。"}],"de":["04"],"lec":"data","pg":[249,271]},{"no":21,"t":"文本处理","p":3,"lead":"数据工程面试高频区：sort / uniq / cut / awk / sed，五个命令能顶一个小型 ETL。","cmds":[{"k":"cut -d -f","d":"按分隔符切列","ex":"cut -d, -f1,3 data.csv"},{"k":"sort / sort -n","d":"排序；-n 按数值，-k 指定列","ex":"sort -t, -k3 -nr data.csv"},{"k":"uniq -c","d":"去重并计数（必须先 sort）","ex":"sort names.txt | uniq -c | sort -rn"},{"k":"awk","d":"按列处理，统计、过滤、重排都能干","ex":"awk -F, '{sum+=$3} END {print sum}' data.csv"},{"k":"sed","d":"流式替换，改配置最常用","ex":"sed -i 's/old/new/g' file.conf"},{"k":"head / tail -f","d":"看头几行 / 实时跟日志","ex":"tail -f app.log"}],"ex":[{"t":"算一个 CSV 第三列的总和","c":"awk -F, 'NR>1 {s+=$3} END {print s}' data.csv","note":"NR>1 跳过表头。"},{"t":"找出出现次数最多的 5 个词","c":"tr ' ' '\\n' < text.txt | sort | uniq -c | sort -rn | head -5","note":""}],"de":["04"],"lec":"data","pg":[272,312]},{"no":22,"t":"格式化输出","p":3,"lead":"printf 是 shell 里唯一能稳定对齐输出的工具，写报表脚本绕不开。","cmds":[{"k":"printf","d":"按格式输出，和 C 语言同源","ex":"printf '%-10s %6.2f\\n' name 12.5"},{"k":"%-10s %6.2f","d":"左对齐 10 宽 / 右对齐 6 宽保留两位","ex":"printf '%s\\t%d\\n' a 1"},{"k":"column -t","d":"把不对齐的文本排成表","ex":"cat data.tsv | column -t"},{"k":"seq","d":"生成数字序列，造测试数据用","ex":"seq 1 10"}],"ex":[{"t":"打印一张对齐的小表","c":"printf '%-8s %8s\\n' NAME SIZE; printf '%-8s %8d\\n' data.csv 1024","note":""}],"de":[],"lec":"data","pg":[313,331]},{"no":23,"t":"打印","p":3,"lead":"这章基本只有 lpr/lpq/lprm 三个命令，扫一眼知道有这回事即可。","cmds":[{"k":"lpr","d":"提交打印任务","ex":"lpr -P printer file.pdf"},{"k":"lpq","d":"看打印队列","ex":"lpq"},{"k":"lprm","d":"取消任务","ex":"lprm 3"}],"ex":[{"t":"确认系统里有没有打印服务","c":"systemctl status cups 2>/dev/null | head -3","note":""}],"de":[],"lec":"pot","pg":[332,343]},{"no":24,"t":"编译程序","p":3,"lead":"从源码装软件的标准三步：configure → make → make install。装在 Rocky 上要装开发工具组。","cmds":[{"k":"gcc","d":"编译单个 C 文件","ex":"gcc -o hello hello.c"},{"k":"make","d":"按 Makefile 构建","ex":"make -j4"},{"k":"./configure","d":"生成 Makefile，--prefix 指定安装位置","ex":"./configure --prefix=/usr/local"},{"k":"make install","d":"安装到系统","ex":"sudo make install"},{"k":"dnf groupinstall","d":"一次装齐开发工具链","ex":"sudo dnf groupinstall -y 'Development Tools'"}],"ex":[{"t":"写个 hello.c 编译并运行","c":"printf '#include <stdio.h>\\nint main(){puts(\"hi\");}' > h.c && gcc -o h h.c && ./h","note":""},{"t":"确认 gcc 和 make 在不在","c":"gcc --version | head -1; make --version | head -1","note":""}],"de":["05"],"lec":"meta","pg":[344,355]},{"no":25,"t":"编写第一个 Shell 脚本","p":4,"lead":"脚本 = 把你在终端敲的一串命令存成文件。就这么简单，但从这一刻起你能自动化了。","cmds":[{"k":"#!/bin/bash","d":"第一行写解释器，别人一看就知道怎么跑","ex":"#!/usr/bin/env bash"},{"k":"chmod +x","d":"给执行权限，才能 ./xxx.sh","ex":"chmod +x backup.sh"},{"k":"# 注释","d":"行注释；脚本开头写清楚干什么用","ex":"# 每天备份 data 目录"},{"k":"bash -n","d":"只检查语法，不执行","ex":"bash -n backup.sh"},{"k":"bash -x","d":"逐行打印执行过程，排错神器","ex":"bash -x backup.sh"}],"ex":[{"t":"写第一个脚本并运行","c":"printf '#!/bin/bash\\necho \"hello $(whoami), now $(date +%F)\"\\n' > ~/hi.sh && chmod +x ~/hi.sh && ~/hi.sh","note":""}],"de":["02"],"lec":"tools","pg":[356,362]},{"no":26,"t":"启动一个项目","p":4,"lead":"从一个能跑的三行脚本开始，逐步长成有结构、能复用的工具。","cmds":[{"k":"set -euo pipefail","d":"脚本开头加这行：出错就停、变量未定义就报错","ex":"set -euo pipefail"},{"k":"函数","d":"把重复逻辑收起来","ex":"log() { echo \"[$(date +%T)] $*\"; }"},{"k":"case","d":"按第一个参数分派动作","ex":"case \"$1\" in start) ... ;; esac"},{"k":"dirname / basename","d":"取脚本自己所在目录，避免相对路径坑","ex":"cd \"$(dirname \"$0\")\""}],"ex":[{"t":"写一个带 start/stop 两个动作的骨架","c":"见右侧示例","note":"这是后面所有运维脚本的模板。"}],"de":["02"],"lec":"tools","pg":[363,374]},{"no":27,"t":"自顶向下设计","p":4,"lead":"先把大问题拆成几个小步骤写出来，再逐个填空——写脚本最省时间的方法。","cmds":[{"k":"伪代码先行","d":"先用注释把步骤列出来","ex":"# 1. 下载  2. 解压  3. 入库"},{"k":"分步验证","d":"每写完一段就跑一次","ex":"bash -x step.sh"},{"k":"小步提交","d":"能跑了就存一份，别憋大招","ex":"cp ok.sh ok.sh.bak"}],"ex":[{"t":"把「下载 CSV 并统计行数」拆成三步写出来","c":"# 1 下载\\n# 2 检查文件非空\\n# 3 wc -l","note":""}],"de":["02"],"lec":"tools","pg":[375,384]},{"no":28,"t":"流程控制：if 分支结构","p":4,"lead":"判断文件在不在、上一步成没成、变量空不空——脚本的决策全靠它。","cmds":[{"k":"if [ ... ]; then","d":"条件成立执行；then 和 if 分行写更清楚","ex":"if [ -f a.txt ]; then echo yes; fi"},{"k":"-f -d -e","d":"是文件 / 是目录 / 存在","ex":"[ -d /data ] && echo dir"},{"k":"-eq -ne -gt -lt","d":"数字比较（字符串用 = 和 !=）","ex":"[ \"$n\" -gt 10 ]"},{"k":"&& ||","d":"成立就执行 / 不成立就执行","ex":"cmd1 && cmd2 || echo failed"},{"k":"elif / else","d":"多分支","ex":"if ...; then ...; elif ...; then ...; else ...; fi"}],"ex":[{"t":"文件不存在就报错退出","c":"test -f data.csv || { echo '缺文件'; exit 1; }","note":""},{"t":"判断上一条命令是否成功","c":"grep -q error app.log && echo '有错误' || echo '干净'","note":""}],"de":["06"],"lec":"tools","pg":[385,400]},{"no":29,"t":"读取键盘输入","p":4,"lead":"让脚本能问人话、也能一行行读文件——while read 是处理大文件的标配。","cmds":[{"k":"read -p","d":"带提示地读一行","ex":"read -p '数据库名: ' DB"},{"k":"read -s","d":"不回显，读密码用","ex":"read -s -p '密码: ' PW"},{"k":"read -t","d":"超时自动返回","ex":"read -t 5 -p '继续? ' ans"},{"k":"while read","d":"逐行读文件，处理大文件不占内存","ex":"while IFS=, read -r a b; do echo $b; done < data.csv"},{"k":"IFS","d":"指定分隔符","ex":"IFS=, read -r x y <<< 'a,b'"}],"ex":[{"t":"逐行处理一个 CSV 并打印第二列","c":"printf 'a,1\\nb,2\\n' > t.csv; while IFS=, read -r k v; do echo \"$k=$v\"; done < t.csv","note":""}],"de":["06"],"lec":"tools","pg":[401,411]},{"no":30,"t":"流程控制：while/until 循环","p":4,"lead":"轮询、重试、批量处理，都是在 while 里转圈。","cmds":[{"k":"while","d":"条件为真就一直转","ex":"while [ $i -lt 5 ]; do echo $i; i=$((i+1)); done"},{"k":"until","d":"条件为假时转（和 while 相反）","ex":"until ping -c1 host; do sleep 1; done"},{"k":"break / continue","d":"跳出 / 跳过本次","ex":"while :; do break; done"},{"k":"sleep","d":"等一会儿，轮询必备","ex":"sleep 5"}],"ex":[{"t":"等数据库端口起来（最多等 30 秒）","c":"for i in $(seq 30); do ss -tnl | grep -q :5432 && break; sleep 1; done","note":""}],"de":["02","06"],"lec":"tools","pg":[412,418]},{"no":31,"t":"疑难排解","p":4,"lead":"脚本不按预期跑，别加 echo 瞎猜——用 -x 和 set -e 让它自己说出发生了什么。","cmds":[{"k":"bash -x","d":"打印每一行展开后的实际命令","ex":"bash -x job.sh"},{"k":"set -x / set +x","d":"在脚本中间开启 / 关闭追踪","ex":"set -x"},{"k":"set -euo pipefail","d":"出错即停，避免错着往下跑","ex":"set -euo pipefail"},{"k":"trap","d":"退出时清理临时文件","ex":"trap 'rm -f $tmp' EXIT"},{"k":"shellcheck","d":"静态检查脚本的坑","ex":"shellcheck job.sh"}],"ex":[{"t":"让脚本在出错时立刻停下","c":"在脚本第二行加 set -euo pipefail 再跑一次","note":""}],"de":["02"],"lec":"debug","pg":[419,431]},{"no":32,"t":"流程控制：case 分支","p":4,"lead":"参数分派（start/stop/restart）用它比 if 清爽十倍。","cmds":[{"k":"case ... esac","d":"按模式匹配，逐条试","ex":"case \"$1\" in start) ... ;; esac"},{"k":";;","d":"每个分支的结束符","ex":""},{"k":"*)","d":"兜底分支，处理非法参数","ex":"*) echo '用法: $0 start|stop'; exit 1 ;;"},{"k":"[a-z]*)","d":"支持通配模式","ex":"y*|Y*) echo yes ;;"}],"ex":[{"t":"写一个支持 start/stop 的小脚本","c":"见右侧示例","note":"以后所有运维脚本都从它长出来。"}],"de":[],"lec":"tools","pg":[432,438]},{"no":33,"t":"位置参数","p":4,"lead":"$1 $2 $@ 是脚本的入口，不会它就只能写死路径。","cmds":[{"k":"$0 $1 $2","d":"脚本名 / 第一个参数 / 第二个参数","ex":"echo \"$0 $1\""},{"k":"$#","d":"参数个数，先做校验","ex":"[ $# -ne 2 ] && { echo '要两个参数'; exit 1; }"},{"k":"$@ / $*","d":"$@ 各自独立（推荐加引号用 \"$@\"）","ex":"for f in \"$@\"; do echo $f; done"},{"k":"shift","d":"把参数左移一位，便于循环取","ex":"while [ $# -gt 0 ]; do echo $1; shift; done"},{"k":"getopts","d":"解析 -f -v 这种选项","ex":"while getopts \"f:v\" o; do ...; done"}],"ex":[{"t":"写个接受文件名的脚本，逐个统计行数","c":"见右侧示例","note":""}],"de":["02"],"lec":"tools","pg":[439,453]},{"no":34,"t":"流程控制：for 循环","p":4,"lead":"遍历文件列表、批量改文件名、跑一批任务——for 是最常用的循环。","cmds":[{"k":"for x in ...","d":"遍历一组值或通配结果","ex":"for f in *.csv; do echo $f; done"},{"k":"for ((i=0;i<n;i++))","d":"C 风格计数循环","ex":"for ((i=0;i<5;i++)); do echo $i; done"},{"k":"$(seq)","d":"生成序列喂给 for","ex":"for d in $(seq 1 7); do echo day$d; done"},{"k":"-d 判断","d":"遍历时跳过目录","ex":"for f in *; do [ -f \"$f\" ] || continue; done"}],"ex":[{"t":"把目录下所有 .txt 改名成 .md","c":"for f in *.txt; do mv \"$f\" \"${f%.txt}.md\"; done","note":"${f%.txt} 是去掉后缀，第 34 章细讲。"}],"de":["02","06"],"lec":"tools","pg":[454,460]},{"no":35,"t":"字符串和数字","p":4,"lead":"取后缀、去前缀、默认值、算术——脚本里的字符串处理全套。","cmds":[{"k":"${#s}","d":"字符串长度","ex":"s=hello; echo ${#s}"},{"k":"${s%.*} / ${s#*.}","d":"去掉最短后缀 / 前缀（文件名切分靠它）","ex":"f=a.tar.gz; echo ${f%%.*} ${f##*.}"},{"k":"${s:-默认}","d":"变量为空时取默认值","ex":"DB=${DB:-postgres}"},{"k":"$(( ))","d":"整数运算","ex":"echo $((3*4+1))"},{"k":"bc -l","d":"浮点运算（bash 自身只会整数）","ex":"echo 'scale=2; 10/3' | bc -l"}],"ex":[{"t":"从 data_2026_11.csv 里切出年月","c":"f=data_2026_11.csv; echo ${f#data_} | cut -d. -f1","note":""},{"t":"做一次带小数的计算","c":"echo 'scale=2; 7/3' | bc -l","note":""}],"de":[],"lec":"tools","pg":[461,481]},{"no":36,"t":"数组","p":4,"lead":"一批相关的值放一起，别再用 a1 a2 a3 这种命名。","cmds":[{"k":"a=(x y z)","d":"定义数组","ex":"arr=(a b c)"},{"k":"${a[@]}","d":"取全部元素（加引号保留空格）","ex":"for x in \"${arr[@]}\"; do echo $x; done"},{"k":"${#a[@]}","d":"元素个数","ex":"echo ${#arr[@]}"},{"k":"${a[1]}","d":"按下标取，从 0 开始","ex":"echo ${arr[1]}"},{"k":"a+=(v)","d":"追加一个元素","ex":"arr+=(d)"}],"ex":[{"t":"遍历数组并编号打印","c":"arr=(docker git python); i=0; for x in \"${arr[@]}\"; do echo \"$((++i)). $x\"; done","note":""}],"de":[],"lec":"tools","pg":[482,491]},{"no":37,"t":"奇珍异宝","p":4,"lead":"分组、子 shell、trap、select、随机数——写顺手之后这些会让脚本更像样。","cmds":[{"k":"{ ...; }","d":"当前 shell 里的一组命令","ex":"{ echo a; echo b; } > out.txt"},{"k":"( ... )","d":"子 shell 里执行，不污染当前环境","ex":"(cd /tmp && ls)"},{"k":"trap","d":"捕获信号，做清理","ex":"trap 'rm -f /tmp/x' EXIT"},{"k":"select","d":"生成菜单让用户选","ex":"select f in a b c; do echo $f; break; done"},{"k":"$RANDOM","d":"0-32767 的随机数","ex":"echo $((RANDOM % 100))"}],"ex":[{"t":"用子 shell 临时切目录，不影响外面","c":"pwd; (cd /tmp && pwd); pwd","note":"对比三次输出。"}],"de":[],"lec":"pot","pg":[492,505]}],"parts":{"1":["第一篇","学习 shell","命令行的地基：怎么在文件系统里走、怎么组合命令、怎么和老兵一样敲键盘。"],"2":["第二篇","配置与环境","把机器变成你自己的：环境变量、编辑器、软件包、磁盘、网络。"],"3":["第三篇","常见任务与工具","查文件、压包、正则、文本处理——数据工程里 80% 的临时活都在这。"],"4":["第四篇","Shell 脚本编程","从敲命令到写程序：条件、循环、函数、参数，最后能写出可复用的脚本。"]},"vm":{"name":"Rocky Linux 64-bit","host":"192.168.100.129","user":"yuang","port":22,"vmx":"D:\\Users\\a1897\\Documents\\Virtual Machines\\Rocky Linux 64-bit\\Rocky Linux 64-bit.vmx","vmrun":"D:\\Program Files\\VMware\\VMware Workstation\\vmrun.exe","finalshell":"D:\\Users\\a1897\\AppData\\Local\\finalshell\\finalshell.exe"},"yt":"PLyzOVJj3bHQuloKGG59rS43e29ro7I57J","lec":{"shell":1,"tools":2,"vim":3,"data":4,"cli":5,"git":6,"debug":7,"meta":8,"sec":9,"pot":10,"qa":11},"de":{"01":"Docker 与 Terraform","02":"工作流编排","03":"数据仓库","04":"分析工程","05":"数据平台","06":"批处理","07":"流处理"},"book":{"title":"Linux 命令行大全","file":"tlcl-cn.pdf","pages":505}};</script>
+<script>
+(function () {
+  "use strict";
+  var CHS = DATA.chapters, VM = DATA.vm;
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) {
+    return String(s).replace(/[&<>"]/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+    });
+  };
+  var done = {};
+  try { done = JSON.parse(localStorage.getItem("linux.done.v1") || "{}"); } catch (e) {}
+
+  /* ---------- 四大篇 ---------- */
+  var html = "";
+  [1, 2, 3, 4].forEach(function (p) {
+    var meta = DATA.parts[String(p)] || ["", "", ""];
+    var list = CHS.filter(function (c) { return c.p === p; });
+    var d = list.filter(function (c) { return done[c.no]; }).length;
+    html += '<div class="card"><h2><span class="n">' + esc(meta[0]) + "</span>" + esc(meta[1]) + "</h2>" +
+      '<p class="sub">' + esc(meta[2]) + "</p>" +
+      '<div class="bar"><i style="width:' + Math.round(d / list.length * 100) + '%"></i></div>' +
+      '<div style="font-size:12px;color:var(--muted)">' + d + " / " + list.length + " 章</div>" +
+      '<div class="chips">' + list.map(function (c) {
+        return '<a class="chip' + (done[c.no] ? " done" : "") + '" href="player.html?ch=' + c.no + '">' +
+          '<span class="no">' + (c.no < 10 ? "0" + c.no : c.no) + "</span>" + esc(c.t) + "</a>";
+      }).join("") + "</div></div>";
+  });
+  $("parts").innerHTML = html;
+
+  var n = Object.keys(done).filter(function (k) { return done[k]; }).length;
+  $("st-done").textContent = n;
+  $("bar-all").style.width = (n / CHS.length * 100) + "%";
+  $("st-total").textContent = CHS.length;
+  $("ch-count").textContent = CHS.length;
+
+  /* 继续学习：从最后一章完成之后的那章接上 */
+  var last = 0, k;
+  for (k in done) if (done[k]) last = Math.max(last, +k);
+  var next = Math.min(last + 1, CHS.length);
+  $("btn-continue").textContent = last ? "继续：第 " + next + " 章" : "从第 1 章开始";
+  $("btn-continue").href = "player.html?ch=" + next;
+
+  /* ---------- 与 DE 的映射 ---------- */
+  var rows = "";
+  Object.keys(DATA.de).forEach(function (mod) {
+    var need = CHS.filter(function (c) { return c.de && c.de.indexOf(mod) >= 0; });
+    rows += "<tr><td><b>" + mod + "</b> " + esc(DATA.de[mod]) + "</td><td>" +
+      (need.length ? need.map(function (c) {
+        return '<a href="player.html?ch=' + c.no + '">' + c.no + " " + esc(c.t) + "</a>";
+      }).join("、") : '<span style="color:var(--muted-2)">这章不依赖命令行</span>') +
+      '</td><td><a href="../index.html#m=' + mod + '">去看课程 →</a></td></tr>';
+  });
+  $("map").innerHTML = "<tr><th>DE 模块</th><th>先补这几章</th><th></th></tr>" + rows;
+
+  /* ---------- 今日一命令 ---------- */
+  var all = [];
+  CHS.forEach(function (c) {
+    c.cmds.forEach(function (m) { all.push({ ch: c.no, ct: c.t, k: m.k, d: m.d, ex: m.ex }); });
+  });
+  var day = Math.floor(Date.now() / 864e5);
+  var pick = all[(day * 37 + 11) % all.length];
+  $("today").innerHTML = '<div class="q">' + esc(pick.k) + "</div>" +
+    '<div class="d">' + esc(pick.d) + "</div>" +
+    (pick.ex ? "<pre>" + esc(pick.ex) + "</pre>" : "") +
+    '<div style="margin-top:10px;font-size:12.5px"><a href="player.html?ch=' + pick.ch + '">' +
+    "出自第 " + pick.ch + " 章 · " + esc(pick.ct) + " →</a></div>";
+
+  /* ---------- 环境 ---------- */
+  $("vm-host").textContent = VM.host;
+  $("vm-user").textContent = VM.user;
+  $("vm-port").textContent = VM.port;
+})();
+</script>
+</body>
+</html>
