@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>翻译方案：视频与讲义</title><style>
+:root{--bg:#fff;--fg:#1a1d21;--muted:#6b7280;--line:#e5e7eb;--accent:#2563eb;--code:#f5f6f8}
+@media(prefers-color-scheme:dark){:root{--bg:#14171b;--fg:#e6eaef;--muted:#98a2b3;--line:#2a313a;--accent:#7aa2ff;--code:#1d232b}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);
+ font:16px/1.75 system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.bar{position:sticky;top:0;background:color-mix(in srgb,var(--bg) 88%,transparent);
+ backdrop-filter:blur(8px);border-bottom:1px solid var(--line);z-index:9}
+.bar .in{max-width:900px;margin:0 auto;padding:10px 22px;display:flex;gap:14px;align-items:center;font-size:13px}
+.bar a{color:var(--muted)}.bar a:hover{color:var(--accent)}
+.bar .sp{flex:1}
+main{max-width:900px;margin:0 auto;padding:34px 22px 80px}
+h1{font-size:28px;line-height:1.3;margin:.2em 0 .5em;letter-spacing:-.01em}
+h2{font-size:21px;margin:1.8em 0 .5em;padding-top:.2em;border-top:1px solid var(--line);padding-top:.7em}
+h3{font-size:17.5px;margin:1.5em 0 .4em}
+p,li{color:var(--fg)}
+code{background:var(--code);padding:.15em .4em;border-radius:5px;font-size:.9em;
+ font-family:ui-monospace,SFMono-Regular,Consolas,monospace}
+pre{background:var(--code);padding:14px 16px;border-radius:10px;overflow:auto;border:1px solid var(--line)}
+pre code{background:none;padding:0;font-size:13.5px;line-height:1.6}
+table{border-collapse:collapse;width:100%;margin:1em 0;font-size:14px;display:block;overflow:auto}
+th,td{border:1px solid var(--line);padding:7px 11px;text-align:left}
+th{background:var(--code);font-weight:600}
+img{max-width:100%;height:auto;border-radius:8px;border:1px solid var(--line)}
+blockquote{margin:1em 0;padding:.4em 1em;border-left:3px solid var(--accent);color:var(--muted);background:var(--code);border-radius:0 8px 8px 0}
+hr{border:none;border-top:1px solid var(--line);margin:2em 0}
+.nav{max-width:900px;margin:0 auto;padding:0 22px 50px;display:flex;gap:12px;justify-content:space-between;font-size:14px}
+.nav a{border:1px solid var(--line);border-radius:9px;padding:9px 14px;color:var(--fg)}
+.nav a:hover{border-color:var(--accent);color:var(--accent);text-decoration:none}
+.nav .empty{border:none}
+</style></head><body>
+<div class="bar"><div class="in">
+  <a href="index.html">← 看板</a>
+  <a href="https://github.com/DataTalksClub/data-engineering-zoomcamp/blob/main/translate.md">GitHub 原文</a>
+  <span class="sp"></span>
+  <span>翻译方案：视频与讲义</span>
+</div></div>
+<main><h1 id="_1">看英文视频和讲义：翻译方案</h1>
+<h2 id="_2">先回答两个问题</h2>
+<p><strong>① 视频能在浏览器里看吗？</strong></p>
+<p>能，而且只能在浏览器里看。打开这个地址就是播放器：</p>
+<p><strong>https://angle-812.github.io/data-engineering-zoomcamp/player.html</strong></p>
+<p>桌面那个 <code>player.html</code> 双击打不开视频，不是你操作错了——YouTube 现在要求嵌入的页面必须有 <code>http(s)</code> 来源，<code>file://</code> 打开的一律拒绝（错误 153）。所以：<strong>看视频用网址，桌面那份用来读离线讲义。</strong></p>
+<p><strong>② 翻译插件装哪个？</strong></p>
+<p>装 <strong>沉浸式翻译（Immersive Translate）</strong> 一个就够。它同时解决两件事：</p>
+<ul>
+<li>YouTube 视频 → 原文 + 中文<strong>双语字幕</strong>同时显示</li>
+<li>讲义网页（英文 Markdown）→ 中英<strong>对照排版</strong>，不是把原文替换掉</li>
+</ul>
+<hr />
+<h2 id="2">一、安装（2 分钟）</h2>
+<h3 id="edge">走 Edge 商店（推荐，国内能打开）</h3>
+<ol>
+<li>用 <strong>Edge</strong> 打开：<code>https://microsoftedge.microsoft.com/addons/</code></li>
+<li>搜索框输入 <strong>沉浸式翻译</strong></li>
+<li>找到图标是蓝底白色「文/A」的那个（发布者 Immersive Translate），点 <strong>获取</strong></li>
+<li>弹窗点 <strong>添加扩展</strong></li>
+<li>装好后点浏览器右上角的拼图图标 🧩，把「沉浸式翻译」后面的<strong>眼睛/图钉</strong>点亮，让它常驻在工具栏</li>
+</ol>
+<h3 id="_3">如果商店打不开，两个备用办法</h3>
+<ul>
+<li><strong>官网下载页</strong>：<code>https://immersivetranslate.com</code> → Download → 选 Edge / Chrome，会带你到对应商店或给离线包</li>
+<li><strong>油猴脚本</strong>：你之前装过 Tampermonkey，直接用它装官方的油猴版脚本（官网下载页有入口）</li>
+</ul>
+<p>⚠️ 只在<strong>官方商店</strong>或<strong>官网</strong>装。搜索引擎广告位里的「沉浸式翻译下载」有一半是套壳，会偷浏览器数据。</p>
+<hr />
+<h2 id="ayoutube">二、场景 A：YouTube 看课时开双语字幕</h2>
+<p>装好之后，直接打开播放页，字幕会自动变成两行：<strong>英文在上、中文在下</strong>。</p>
+<p>没出现的话按顺序查这三处：</p>
+<ol>
+<li><strong>这个视频有没有字幕轨</strong>
+   播放器右下角齿轮 ⚙ → 字幕 → 看有没有 <code>English (auto-generated)</code>。有就选上。
+   （YouTube 会自动生成英文字幕，这个课的视频基本都有）</li>
+<li><strong>扩展的字幕开关</strong>
+   点扩展图标 → <strong>更多功能</strong> → 打开「<strong>字幕翻译</strong>」（有的版本叫「当前网站字幕翻译」）</li>
+<li><strong>刷新一次页面</strong>，再等两三秒</li>
+</ol>
+<p><strong>字幕样式</strong>：鼠标移到画面上，会出现扩展的浮动按钮，可以切换「双语对照 / 仅译文」、调字号和颜色、把字幕位置往上挪（不挡画面底部）。</p>
+<p><strong>重要提醒</strong>：双语字幕是<strong>边播边翻</strong>，中文会晚半句。术语（<code>orchestration</code>、<code>idempotent</code>、<code>watermark</code> 这类）机翻经常不准，看的时候眼睛扫一眼上面那行英文，比死磕中文快。</p>
+<hr />
+<h2 id="b">三、场景 B：讲义网页中英对照读</h2>
+<p>课程讲义全是英文 Markdown。三种打开方式，翻译体验不一样：</p>
+<table>
+<thead>
+<tr>
+<th>怎么打开</th>
+<th>翻译效果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>看板里点「原文」（跳 GitHub）</td>
+<td>点扩展图标 → <strong>翻译</strong>，整页变中英对照</td>
+</tr>
+<tr>
+<td>看板上点「打开」（本地 HTML）</td>
+<td>同上，本地文件也能翻</td>
+</tr>
+<tr>
+<td>直接拖 PDF 进浏览器</td>
+<td>支持，会保留原排版，公式和表格不会乱</td>
+</tr>
+</tbody>
+</table>
+<p><strong>让它自动翻</strong>：在讲义页面点扩展图标 → 选「<strong>始终翻译此网站</strong>」，以后打开 <code>github.com</code> 或本地 HTML 就自动翻，不用每次点。</p>
+<p><strong>读 PDF 更省事的做法</strong>：把 PDF 拖进浏览器窗口 → 右键 → 用沉浸式翻译打开（或点扩展图标里的「翻译 PDF」）。扫描版也能识别，但慢一点。</p>
+<hr />
+<h2 id="c">四、场景 C：不想装扩展的兜底方案</h2>
+<p><strong>Edge 自带翻译</strong>：打开英文页面 → 地址栏右边出现翻译图标 → 点它 → 「翻译成中文」。
+优点：零安装。缺点：<strong>整页替换</strong>成中文，原文消失；<strong>不支持视频字幕</strong>。</p>
+<p>所以：只看讲义可以用它，要字幕还是得装插件。</p>
+<hr />
+<h2 id="_4">五、想「边看边学」的话，再加一个（可选）</h2>
+<p><strong>Language Reactor</strong>（Chrome / Edge 商店都有）：为学语言设计的。</p>
+<ul>
+<li>双语字幕 + <strong>点单词立刻出词典</strong></li>
+<li>字幕逐句<strong>自动暂停</strong>，一句听懂再往下（练听力很有用）</li>
+<li>有生词本，能导出到 Anki</li>
+<li>免费版够用；Pro（约 5 美元/月）才能无限存词、AI 语法解释</li>
+</ul>
+<p>它和沉浸式翻译可以共存，但<strong>别同时开</strong>，两套字幕会叠在一起。看技术课用沉浸式翻译，专门练听力时换 Language Reactor。</p>
+<hr />
+<h2 id="_5">六、几个实用细节</h2>
+<p><strong>手机上看</strong>
+浏览器扩展在手机上没有。手机方案：装沉浸式翻译的手机 App（iOS / Android 都有），或直接用手机浏览器打开播放页 + 用浏览器自带翻译看讲义。视频字幕在手机 YouTube App 里没法双语，只能开 YouTube 自带的「自动翻译」字幕。</p>
+<p><strong>中文自动翻译质量</strong>
+YouTube 自带的「设置 → 字幕 → 自动翻译 → 中文（简体）」也能用，但它是逐词机翻，读起来很硬。沉浸式翻译是按整句翻，通顺程度高一档——这是装插件最实际的理由。</p>
+<p><strong>别做的事</strong>
+- 别在插件里填 GitHub 密码。只有需要 AI 引擎（DeepSeek / OpenAI / Gemini）时才填那家的 API Key，而且那是另一件事，跟 GitHub 无关
+- 别装「破解版 / 绿色版」扩展
+- 别一次装五六个翻译插件，互相抢页面，反而更卡</p>
+<hr />
+<h2 id="_6">一句话总结</h2>
+<blockquote>
+<p><strong>Edge 商店装「沉浸式翻译」→ 打开播放页看双语字幕 → 讲义页点一下翻译。</strong>
+视频只在浏览器看：https://angle-812.github.io/data-engineering-zoomcamp/player.html</p>
+</blockquote></main>
+<div class="nav"><a href="github-desktop.html">← GitHub Desktop 使用手册</a><span class="empty"></span></div>
+</body></html>
