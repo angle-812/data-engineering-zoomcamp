@@ -478,6 +478,8 @@ a:hover{text-decoration:underline}
   /* ---------- 启动 ---------- */
   renderSide();
   var start = 1;
+  var tm = location.search.match(/[?&]tab=(doc|cmd|ex)/);
+  if (tm) setPane(tm[1]);
   var m = location.search.match(/[?&]ch=(\d+)/);
   if (m) start = +m[1];
   else {
