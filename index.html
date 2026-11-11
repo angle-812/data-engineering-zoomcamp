@@ -157,6 +157,8 @@
       <button class="btn" id="btn-collapse">全部收起</button>
       <button class="btn" id="btn-hide" aria-pressed="false">只看未完成</button>
       <a class="btn go" id="btn-player" href="player.html">▶ 学习台</a>
+      <a class="btn" href="daily.html">今日知识</a>
+      <a class="btn" href="read.html">竖屏讲义</a>
       <button class="btn" id="btn-reset">清空进度</button>
     </div>
   </header>
@@ -172,6 +174,10 @@
 
   <h2 class="sec">常用入口</h2>
   <div class="links">
+    <a class="lk" href="daily.html">
+      <b>每日知识卡</b><span>116 条数据工程常识，每天自动换一条，可收藏</span></a>
+    <a class="lk" href="read.html">
+      <b>竖屏讲义</b><span>纯净阅读版，拖到竖屏副屏，和视频分开看</span></a>
     <a class="lk" href="github-desktop.html" target="_blank" rel="noopener">
       <b>GitHub Desktop 手册</b><span>新手向：克隆、提交、推送、报错对照</span></a>
     <a class="lk" href="translate.html" target="_blank" rel="noopener">
@@ -247,6 +253,11 @@ function unitRow(u) {
   </div>`;
 }
 
+function hwHref(m) {
+  const v = (m.units.find(u => u.yt) || {}).yt;
+  return PLAYER_BASE + "?pane=hw" + (v ? "&v=" + v : "");
+}
+
 function card(m) {
   const n = m.units.length;
   const c = m.units.filter(u => done[u.p]).length;
@@ -262,7 +273,7 @@ function card(m) {
           ${vids ? `<span>${vids} 个带视频</span>` : ""}
           <a href="https://www.youtube.com/playlist?list=PL3MmuxUbc_hJed7dXYoJw8DoCuVHhGEQb" target="_blank" rel="noopener">视频列表</a>
           <a href="${hrefOf(m.readme, m.lreadme)}" target="_blank" rel="noopener">模块目录</a>
-          ${m.homework ? `<a href="${GH + m.homework}" target="_blank" rel="noopener">作业</a>` : ""}
+          ${m.homework ? `<a href="${hwHref(m)}" target="_blank" rel="noopener" title="在学习台里做这份作业（题目 + 写答案 + 导出）">作业</a>` : ""}
         </div>
       </div>
       <div class="cnt">${c}/${n}</div>
