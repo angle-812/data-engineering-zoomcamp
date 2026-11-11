@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>06 · Batch Processing</title><style>
+:root{--bg:#fff;--fg:#1a1d21;--muted:#6b7280;--line:#e5e7eb;--accent:#2563eb;--code:#f5f6f8}
+@media(prefers-color-scheme:dark){:root{--bg:#14171b;--fg:#e6eaef;--muted:#98a2b3;--line:#2a313a;--accent:#7aa2ff;--code:#1d232b}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);
+ font:16px/1.75 system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.bar{position:sticky;top:0;background:color-mix(in srgb,var(--bg) 88%,transparent);
+ backdrop-filter:blur(8px);border-bottom:1px solid var(--line);z-index:9}
+.bar .in{max-width:900px;margin:0 auto;padding:10px 22px;display:flex;gap:14px;align-items:center;font-size:13px}
+.bar a{color:var(--muted)}.bar a:hover{color:var(--accent)}
+.bar .sp{flex:1}
+main{max-width:900px;margin:0 auto;padding:34px 22px 80px}
+h1{font-size:28px;line-height:1.3;margin:.2em 0 .5em;letter-spacing:-.01em}
+h2{font-size:21px;margin:1.8em 0 .5em;padding-top:.2em;border-top:1px solid var(--line);padding-top:.7em}
+h3{font-size:17.5px;margin:1.5em 0 .4em}
+p,li{color:var(--fg)}
+code{background:var(--code);padding:.15em .4em;border-radius:5px;font-size:.9em;
+ font-family:ui-monospace,SFMono-Regular,Consolas,monospace}
+pre{background:var(--code);padding:14px 16px;border-radius:10px;overflow:auto;border:1px solid var(--line)}
+pre code{background:none;padding:0;font-size:13.5px;line-height:1.6}
+table{border-collapse:collapse;width:100%;margin:1em 0;font-size:14px;display:block;overflow:auto}
+th,td{border:1px solid var(--line);padding:7px 11px;text-align:left}
+th{background:var(--code);font-weight:600}
+img{max-width:100%;height:auto;border-radius:8px;border:1px solid var(--line)}
+blockquote{margin:1em 0;padding:.4em 1em;border-left:3px solid var(--accent);color:var(--muted);background:var(--code);border-radius:0 8px 8px 0}
+hr{border:none;border-top:1px solid var(--line);margin:2em 0}
+.nav{max-width:900px;margin:0 auto;padding:0 22px 50px;display:flex;gap:12px;justify-content:space-between;font-size:14px}
+.nav a{border:1px solid var(--line);border-radius:9px;padding:9px 14px;color:var(--fg)}
+.nav a:hover{border-color:var(--accent);color:var(--accent);text-decoration:none}
+.nav .empty{border:none}
+</style></head><body>
+<div class="bar"><div class="in">
+  <a href="../index.html">← 看板</a>
+  <a href="https://github.com/DataTalksClub/data-engineering-zoomcamp/blob/main/06-batch.md">GitHub 原文</a>
+  <span class="sp"></span>
+  <span>06-batch.md</span>
+</div></div>
+<main><h1 id="06-batch-processing">06 · Batch Processing</h1>
+<blockquote>
+<p>Process taxi data at scale with Spark, PySpark, and Spark SQL.</p>
+</blockquote>
+<p><strong>时间</strong>：第 6 周 ｜ <strong>讲义</strong>：<a href="https://github.com/DataTalksClub/data-engineering-zoomcamp/blob/main/06-batch/README.md">06-batch/README.md</a> ｜ <strong>作业</strong>：<a href="https://github.com/DataTalksClub/data-engineering-zoomcamp/blob/main/cohorts/2027/homework/06-batch/homework.md">homework.md</a></p>
+<h2 id="_1">单元清单</h2>
+<ul>
+<li>☐ <a href="https://github.com/DataTalksClub/data-engineering-zoomcamp/blob/main/06-batch/01-introduction-to-batch-processing.md">Introduction to Batch Processing</a> ｜ <a href="https://youtu.be/dcHe5Fl3MF8">视频</a></li>
+<li>☐ <a href="https://github.com/DataTalksClub/data-engineering-zoomcamp/blob/main/06-batch/02-introduction-to-spark.md">Introduction to Spark</a> ｜ <a href="https://youtu.be/FhaqbEOuQ8U">视频</a></li>
+<li>☐ <a href="https://github.com/DataTalksClub/data-engineering-zoomcamp/blob/main/06-batch/03-installing-spark.md">Installing Spark</a> ｜ <a href="https://youtu.be/hqUbB9c8sKg">视频</a></li>
+<li>☐ <a href="https://github.com/DataTalksClub/data-engineering-zoomcamp/blob/main/06-batch/04-first-look-at-spark.md">First Look at Spark/PySpark</a> ｜ <a href="https://youtu.be/r_Sf6fCB40c">视频</a></li>
+<li>☐ <a href="https://github.com/DataTalksClub/data-engineering-zoomcamp/blob/main/06-batch/05-spark-dataframes.md">Spark DataFrames</a> ｜ <a href="https://youtu.be/ti3aC1m3rE8">视频</a></li>
+<li>☐ <a href="https://github.com/DataTalksClub/data-engineering-zoomcamp/blob/main/06-batch/06-preparing-taxi-data.md">Preparing Yellow and Green Taxi Data</a> ｜ <a href="https://youtu.be/CI3P4tAtru4">视频</a></li>
+<li>☐ <a href="https://github.com/DataTalksClub/data-engineering-zoomcamp/blob/main/06-batch/07-sql-with-spark.md">SQL with Spark</a> ｜ <a href="https://youtu.be/uAlp2VuZZPY">视频</a></li>
+<li>☐ <a href="https://github.com/DataTalksClub/data-engineering-zoomcamp/blob/main/06-batch/08-anatomy-of-a-spark-cluster.md">Anatomy of a Spark Cluster</a> ｜ <a href="https://youtu.be/68CipcZt7ZA">视频</a></li>
+<li>☐ <a href="https://github.com/DataTalksClub/data-engineering-zoomcamp/blob/main/06-batch/09-groupby-in-spark.md">GroupBy in Spark</a> ｜ <a href="https://youtu.be/9qrDsY_2COo">视频</a></li>
+<li>☐ <a href="https://github.com/DataTalksClub/data-engineering-zoomcamp/blob/main/06-batch/10-joins-in-spark.md">Joins in Spark</a> ｜ <a href="https://youtu.be/lu7TrqAWuH4">视频</a></li>
+<li>☐ <a href="https://github.com/DataTalksClub/data-engineering-zoomcamp/blob/main/06-batch/11-operations-on-spark-rdds.md">Operations on Spark RDDs</a> ｜ <a href="https://youtu.be/Bdu-xIrF3OM">视频</a></li>
+<li>☐ <a href="https://github.com/DataTalksClub/data-engineering-zoomcamp/blob/main/06-batch/12-spark-rdd-mappartition.md">Spark RDD mapPartition</a> ｜ <a href="https://youtu.be/k3uB2K99roI">视频</a></li>
+<li>☐ <a href="https://github.com/DataTalksClub/data-engineering-zoomcamp/blob/main/06-batch/13-connecting-to-google-cloud-storage.md">Connecting to Google Cloud Storage</a> ｜ <a href="https://youtu.be/Yyz293hBVcQ">视频</a></li>
+<li>☐ <a href="https://github.com/DataTalksClub/data-engineering-zoomcamp/blob/main/06-batch/14-creating-a-local-spark-cluster.md">Creating a Local Spark Cluster</a> ｜ <a href="https://youtu.be/HXBwSlXo5IA">视频</a></li>
+<li>☐ <a href="https://github.com/DataTalksClub/data-engineering-zoomcamp/blob/main/06-batch/15-setting-up-a-dataproc-cluster.md">Setting up a Dataproc Cluster</a> ｜ <a href="https://youtu.be/osAiAYahvh8">视频</a></li>
+<li>☐ <a href="https://github.com/DataTalksClub/data-engineering-zoomcamp/blob/main/06-batch/16-connecting-spark-to-bigquery.md">Connecting Spark to BigQuery</a> ｜ <a href="https://youtu.be/HIm2BOj8C0Q">视频</a></li>
+</ul>
+<h2 id="_2">我的笔记</h2>
+<h3 id="_3">关键概念</h3>
+<h3 id="_4">踩过的坑</h3>
+<h3 id="_5">可复用代码</h3>
+<pre><code class="language-bash"></code></pre>
+<h2 id="_6">作业草稿</h2>
+<table>
+<thead>
+<tr>
+<th>题号</th>
+<th>我的答案</th>
+<th>依据 / 命令</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>2</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>3</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="_7">一句话复盘</h2>
+<p><em>这个模块解决了什么问题？我能不看笔记讲清楚吗？</em></p></main>
+<div class="nav"><a href="./05-data-platforms.html">← 05-data-platforms</a><a href="./07-streaming.html">07-streaming →</a></div>
+</body></html>
