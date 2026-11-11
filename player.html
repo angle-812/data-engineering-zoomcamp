@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>选集播放 · Data Engineering Zoomcamp</title>
+<style>
+  :root{
+    --bg:#f4f5f7; --card:#ffffff; --panel:#ffffff; --line:#e3e6ec; --line-soft:#eef0f4;
+    --text:#14171c; --muted:#657080; --muted-2:#8b94a2;
+    --accent:#2563eb; --accent-weak:#eaf0ff; --accent-line:#c9d8ff;
+    --ok:#0f9d58; --ok-weak:#e8f7ef; --radius:14px;
+    --shadow:0 1px 2px rgba(16,24,40,.05),0 8px 24px rgba(16,24,40,.05);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0d1014; --card:#15191f; --panel:#15191f; --line:#262c35; --line-soft:#1f252d;
+      --text:#e8ecf2; --muted:#98a2b0; --muted-2:#79838f;
+      --accent:#74a3ff; --accent-weak:#182233; --accent-line:#2b3d5c;
+      --ok:#43c78a; --ok-weak:#12291f;
+      --shadow:0 1px 2px rgba(0,0,0,.4);
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg);color:var(--text);
+    font:15px/1.55 system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  button{font:inherit;color:inherit}
+
+  .top{
+    display:flex;align-items:center;gap:14px;
+    padding:12px 20px;border-bottom:1px solid var(--line);
+    background:var(--card);position:sticky;top:0;z-index:20;
+  }
+  .back{
+    font-size:13px;color:var(--muted);border:1px solid var(--line);
+    padding:5px 11px;border-radius:8px;white-space:nowrap;
+  }
+  .back:hover{color:var(--accent);border-color:var(--accent-line);text-decoration:none}
+  .ttl{font-weight:600;font-size:14.5px;letter-spacing:-.01em;flex:1;min-width:0;
+       white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .stats{font-size:12.5px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+  .stats b{color:var(--text);font-size:14.5px}
+
+  .grid{
+    display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:20px;
+    max-width:1360px;margin:0 auto;padding:20px;
+    align-items:start;
+  }
+  @media (max-width:1000px){
+    .grid{grid-template-columns:minmax(0,1fr);padding:14px}
+  }
+
+  /* ---------- 播放区 ---------- */
+  .stage{min-width:0}
+  .frame{
+    position:relative;width:100%;aspect-ratio:16/9;background:#000;
+    border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);
+  }
+  .frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  #player{position:absolute;inset:0;width:100%;height:100%}
+
+  .veil{
+    position:absolute;inset:0;display:flex;flex-direction:column;gap:12px;
+    align-items:center;justify-content:center;text-align:center;padding:24px;
+    background:rgba(8,10,14,.86);color:#e9eef6;z-index:5;
+  }
+  .veil[hidden]{display:none}
+  .veil h3{margin:0;font-size:16px}
+  .veil p{margin:0;font-size:13px;color:#a9b4c4;max-width:420px;line-height:1.6}
+  .veil .acts{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:4px}
+  .veil a.primary{background:#2563eb;color:#fff}
+  .notice{
+    display:flex;gap:10px;align-items:center;flex-wrap:wrap;
+    max-width:1360px;margin:14px auto -4px;padding:0 20px;
+    font-size:13px;color:var(--muted);
+  }
+  .notice .box{
+    flex:1;min-width:240px;border:1px solid var(--accent-line);background:var(--accent-weak);
+    color:var(--text);border-radius:10px;padding:9px 13px;line-height:1.6;
+  }
+  .notice[hidden]{display:none}
+  .veil a,.veil button{
+    background:#2563eb;color:#fff;border:0;border-radius:8px;
+    padding:8px 14px;font-size:13.5px;cursor:pointer;text-decoration:none;
+  }
+  .veil button.ghost{background:transparent;border:1px solid #47566b;color:#c8d2e0}
+
+  .meta{padding:14px 2px 0}
+  .crumb{font-size:12px;color:var(--muted-2);letter-spacing:.02em}
+  .crumb b{color:var(--accent);font-weight:600}
+  h1.ep{font-size:19px;line-height:1.35;margin:5px 0 12px;letter-spacing:-.01em;font-weight:650}
+  .row{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+  .btn{
+    border:1px solid var(--line);background:var(--card);color:var(--text);
+    padding:6px 12px;border-radius:8px;font-size:13px;cursor:pointer;
+    display:inline-flex;align-items:center;gap:6px;
+  }
+  .btn:hover{border-color:var(--accent-line);color:var(--accent)}
+  .btn:disabled{opacity:.4;cursor:default;border-color:var(--line);color:var(--muted)}
+  .btn.on{background:var(--accent-weak);border-color:var(--accent-line);color:var(--accent)}
+  .btn.sm{padding:4px 9px;font-size:12.5px}
+  .sep{width:1px;height:22px;background:var(--line);margin:0 4px}
+  .sw{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);cursor:pointer;user-select:none}
+  .sw input{accent-color:var(--accent);width:15px;height:15px;cursor:pointer}
+
+  /* ---------- 选集列表 ---------- */
+  .side{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);overflow:hidden;
+    position:sticky;top:74px;display:flex;flex-direction:column;max-height:calc(100vh - 96px);
+  }
+  @media (max-width:1000px){
+    .side{position:static;max-height:none}
+  }
+  .filters{
+    display:flex;gap:8px;align-items:center;padding:10px;border-bottom:1px solid var(--line);
+    background:var(--card);
+  }
+  .filters input[type=search]{
+    flex:1;min-width:0;border:1px solid var(--line);background:var(--bg);color:var(--text);
+    border-radius:8px;padding:7px 10px;font-size:13px;outline:none;
+  }
+  .filters input[type=search]:focus{border-color:var(--accent-line)}
+  .list{overflow-y:auto;overscroll-behavior:contain;flex:1;padding:6px 6px 12px}
+  .mhead{
+    display:flex;align-items:baseline;gap:8px;padding:12px 10px 6px;
+    position:sticky;top:0;background:var(--card);z-index:2;
+  }
+  .mhead .mi{
+    font-size:11px;font-weight:700;color:var(--accent);background:var(--accent-weak);
+    border:1px solid var(--accent-line);padding:1px 6px;border-radius:5px;letter-spacing:.02em;
+  }
+  .mhead .mn{font-size:12.5px;font-weight:600;color:var(--muted);flex:1;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mhead .mc{font-size:11.5px;color:var(--muted-2);font-variant-numeric:tabular-nums}
+
+  .ep{
+    display:flex;gap:9px;align-items:flex-start;width:100%;text-align:left;
+    background:transparent;border:0;border-radius:9px;padding:8px 10px;cursor:pointer;
+    position:relative;overflow:hidden;
+  }
+  .ep:hover{background:var(--line-soft)}
+  .ep.cur{background:var(--accent-weak)}
+  .ep .no{
+    font-size:11.5px;color:var(--muted-2);font-variant-numeric:tabular-nums;
+    padding-top:2px;width:20px;flex:0 0 auto;text-align:right;
+  }
+  .ep.cur .no{color:var(--accent)}
+  .ep .body{flex:1;min-width:0}
+  .ep .t{display:block;font-size:13.2px;line-height:1.45;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .ep.cur .t{color:var(--accent);font-weight:600}
+  .ep.done .t{color:var(--muted)}
+  .ep .sub{display:block;font-size:11.5px;color:var(--muted-2);margin-top:2px}
+  .ep .mark{
+    flex:0 0 auto;width:14px;height:14px;border-radius:50%;border:1.5px solid var(--line);
+    margin-top:3px;position:relative;
+  }
+  .ep.done .mark{background:var(--ok);border-color:var(--ok)}
+  .ep.done .mark::after{
+    content:"";position:absolute;left:3.6px;top:1.2px;width:4px;height:7px;
+    border:solid #fff;border-width:0 1.6px 1.6px 0;transform:rotate(43deg);
+  }
+  .ep .pb{
+    position:absolute;left:0;bottom:0;height:2px;background:var(--accent);
+    opacity:.55;border-radius:0 2px 2px 0;
+  }
+  .empty{padding:30px 14px;text-align:center;color:var(--muted-2);font-size:13px}
+
+  .foot{
+    max-width:1360px;margin:0 auto;padding:0 20px 40px;
+    color:var(--muted-2);font-size:12.5px;line-height:1.7;
+  }
+  .foot kbd{
+    font:inherit;font-size:11.5px;background:var(--card);border:1px solid var(--line);
+    border-radius:5px;padding:1px 5px;margin:0 1px;
+  }
+  .tip{
+    margin-top:10px;padding:9px 12px;border:1px solid var(--line);border-left:3px solid var(--accent);
+    border-radius:8px;background:var(--card);color:var(--muted);font-size:12.5px;
+  }
+</style>
+</head>
+<body>
+
+<div class="top">
+  <a class="back" href="index.html">← 看板</a>
+  <div class="ttl">Data Engineering Zoomcamp · 选集播放</div>
+  <div class="stats"><b id="st-done">0</b> / <span id="st-total">0</span> 已看完</div>
+</div>
+
+<div class="notice" id="notice" hidden>
+  <div class="box">
+    你现在是<b>本地打开</b>的（<code>file://</code>），YouTube 会因为请求没有站点来源而拒绝播放（错误 153）。
+    改用线上版就能正常看，选集和进度是同一个页面：
+    <a href="https://angle-812.github.io/data-engineering-zoomcamp/player.html" target="_blank" rel="noopener">打开线上选集页 →</a>
+  </div>
+</div>
+
+<main class="grid">
+  <section class="stage">
+    <div class="frame">
+      <div id="player"></div>
+      <div class="veil" id="veil" hidden></div>
+    </div>
+
+    <div class="meta">
+      <div class="crumb" id="ep-mod">—</div>
+      <h1 class="ep" id="ep-title">正在载入…</h1>
+      <div class="row">
+        <button class="btn" id="btn-prev">← 上一节</button>
+        <button class="btn" id="btn-next">下一节 →</button>
+        <button class="btn sm" id="btn-done">标记已看</button>
+        <button class="btn sm" id="btn-restart">从头播</button>
+        <a class="btn sm" id="lnk-doc" href="#" target="_blank" rel="noopener">讲义</a>
+        <span class="sep"></span>
+        <button class="btn sm spd" data-speed="1">1×</button>
+        <button class="btn sm spd" data-speed="1.25">1.25×</button>
+        <button class="btn sm spd" data-speed="1.5">1.5×</button>
+        <span class="sep"></span>
+        <label class="sw"><input type="checkbox" id="autoplay" checked> 自动连播</label>
+      </div>
+    </div>
+  </section>
+
+  <aside class="side">
+    <div class="filters">
+      <input type="search" id="q" placeholder="搜索标题 / 模块">
+      <label class="sw"><input type="checkbox" id="only-todo"> 未完成</label>
+    </div>
+    <div class="list" id="list"></div>
+  </aside>
+</main>
+
+<div class="foot">
+  键盘：<kbd>←</kbd><kbd>→</kbd> 上/下一节 · <kbd>空格</kbd> 播放或暂停 · <kbd>Esc</kbd> 回列表顶部
+  <div class="tip" id="lynx">看完一节会自动跳到下一节；进度保存在本机浏览器里，换设备不同步。</div>
+</div>
+
+<script>
+const DATA = {"gh":"https://github.com/DataTalksClub/data-engineering-zoomcamp/blob/main/","episodes":[{"n":1,"id":"QEcps_iskgg","t":"SQL Refresher","p":"01-docker-terraform/10-sql-refresher.md","lp":"","mid":"01","mt":"Containerization and Infrastructure as Code"},{"n":2,"id":"18jIzE41fJ4","t":"Terraform Overview","p":"01-docker-terraform/12-terraform-overview.md","lp":"","mid":"01","mt":"Containerization and Infrastructure as Code"},{"n":3,"id":"18jIzE41fJ4","t":"GCP Overview","p":"01-docker-terraform/13-gcp-overview.md","lp":"","mid":"01","mt":"Containerization and Infrastructure as Code"},{"n":4,"id":"-JLnp-iLins","t":"What is Workflow Orchestration?","p":"02-workflow-orchestration/01-what-is-workflow-orchestration.md","lp":"","mid":"02","mt":"Workflow Orchestration"},{"n":5,"id":"ZvVN_NmB_1s","t":"What is Kestra?","p":"02-workflow-orchestration/02-what-is-kestra.md","lp":"","mid":"02","mt":"Workflow Orchestration"},{"n":6,"id":"wgPxC4UjoLM","t":"Installing Kestra","p":"02-workflow-orchestration/03-installing-kestra.md","lp":"","mid":"02","mt":"Workflow Orchestration"},{"n":7,"id":"MNOKVx8780E","t":"Kestra Concepts","p":"02-workflow-orchestration/04-kestra-concepts.md","lp":"","mid":"02","mt":"Workflow Orchestration"},{"n":8,"id":"VAHm0R_XjqI","t":"Orchestrate Python Code","p":"02-workflow-orchestration/05-orchestrate-python-code.md","lp":"","mid":"02","mt":"Workflow Orchestration"},{"n":9,"id":"-KmwrCqRhic","t":"Getting Started Pipeline","p":"02-workflow-orchestration/06-getting-started-pipeline.md","lp":"","mid":"02","mt":"Workflow Orchestration"},{"n":10,"id":"Z9ZmmwtXDcU","t":"Local DB: Load Taxi Data to Postgres","p":"02-workflow-orchestration/07-load-taxi-data-to-postgres.md","lp":"","mid":"02","mt":"Workflow Orchestration"},{"n":11,"id":"1pu_C_oOAMA","t":"Local DB: Learn Scheduling and Backfills","p":"02-workflow-orchestration/08-scheduling-and-backfills.md","lp":"","mid":"02","mt":"Workflow Orchestration"},{"n":12,"id":"E04yurp1tSU","t":"ETL vs ELT","p":"02-workflow-orchestration/09-etl-vs-elt.md","lp":"","mid":"02","mt":"Workflow Orchestration"},{"n":13,"id":"TLGFAOHpOYM","t":"Setup Google Cloud Platform (GCP)","p":"02-workflow-orchestration/10-setup-google-cloud-platform.md","lp":"","mid":"02","mt":"Workflow Orchestration"},{"n":14,"id":"52u9X_bfTAo","t":"GCP Workflow: Load Taxi Data to BigQuery","p":"02-workflow-orchestration/11-load-taxi-data-to-bigquery.md","lp":"","mid":"02","mt":"Workflow Orchestration"},{"n":15,"id":"b-6KhfWfk2M","t":"GCP Workflow: Schedule and Backfill Full Dataset","p":"02-workflow-orchestration/12-schedule-and-backfill-full-dataset.md","lp":"","mid":"02","mt":"Workflow Orchestration"},{"n":16,"id":"GHPtRDAv044","t":"Introduction: Why AI for Workflows?","p":"02-workflow-orchestration/13-why-ai-for-workflows.md","lp":"","mid":"02","mt":"Workflow Orchestration"},{"n":17,"id":"LmnfjGKwnVU","t":"Context Engineering with ChatGPT","p":"02-workflow-orchestration/14-context-engineering-with-chatgpt.md","lp":"","mid":"02","mt":"Workflow Orchestration"},{"n":18,"id":"3IbjHfC8bMg","t":"AI Copilot in Kestra","p":"02-workflow-orchestration/15-ai-copilot-in-kestra.md","lp":"","mid":"02","mt":"Workflow Orchestration"},{"n":19,"id":"XuPDQ1UcNyI","t":"Bonus: Retrieval Augmented Generation (RAG)","p":"02-workflow-orchestration/16-retrieval-augmented-generation.md","lp":"","mid":"02","mt":"Workflow Orchestration"},{"n":20,"id":"jrHljAoD6nM","t":"Data Warehouse and BigQuery","p":"03-data-warehouse/01-data-warehouse-and-bigquery.md","lp":"","mid":"03","mt":"Data Warehousing"},{"n":21,"id":"-CqXf7vhhDs","t":"Partitioning vs Clustering","p":"03-data-warehouse/02-partitioning-vs-clustering.md","lp":"","mid":"03","mt":"Data Warehousing"},{"n":22,"id":"k81mLJVX08w","t":"BigQuery Best Practices","p":"03-data-warehouse/03-bigquery-best-practices.md","lp":"","mid":"03","mt":"Data Warehousing"},{"n":23,"id":"eduHi1inM4s","t":"Internals of BigQuery","p":"03-data-warehouse/04-internals-of-bigquery.md","lp":"","mid":"03","mt":"Data Warehousing"},{"n":24,"id":"B-WtpB0PuG4","t":"Machine Learning in BigQuery","p":"03-data-warehouse/05-machine-learning-in-bigquery.md","lp":"","mid":"03","mt":"Data Warehousing"},{"n":25,"id":"BjARzEWaznU","t":"Deploying a Machine Learning Model from BigQuery","p":"03-data-warehouse/06-deploying-a-machine-learning-model.md","lp":"","mid":"03","mt":"Data Warehousing"},{"n":26,"id":"uF76d5EmdtU","t":"Analytics Engineering Basics","p":"04-analytics-engineering/01-analytics-engineering-basics.md","lp":"","mid":"04","mt":"Analytics Engineering"},{"n":27,"id":"gsKuETFJr54","t":"What is dbt?","p":"04-analytics-engineering/02-what-is-dbt.md","lp":"","mid":"04","mt":"Analytics Engineering"},{"n":28,"id":"2dYDS4OQbT0","t":"dbt Project Structure","p":"04-analytics-engineering/04-dbt-project-structure.md","lp":"","mid":"04","mt":"Analytics Engineering"},{"n":29,"id":"7CrrXazV_8k","t":"dbt Sources","p":"04-analytics-engineering/05-dbt-sources.md","lp":"","mid":"04","mt":"Analytics Engineering"},{"n":30,"id":"JQYz-8sl1aQ","t":"dbt Models","p":"04-analytics-engineering/06-dbt-models.md","lp":"","mid":"04","mt":"Analytics Engineering"},{"n":31,"id":"lT4fmTDEqVk","t":"dbt Seeds and Macros","p":"04-analytics-engineering/07-dbt-seeds-and-macros.md","lp":"","mid":"04","mt":"Analytics Engineering"},{"n":32,"id":"UqoWyMjcqrA","t":"Documentation","p":"04-analytics-engineering/08-documentation.md","lp":"","mid":"04","mt":"Analytics Engineering"},{"n":33,"id":"bvZ-rJm7uMU","t":"dbt Tests","p":"04-analytics-engineering/09-dbt-tests.md","lp":"","mid":"04","mt":"Analytics Engineering"},{"n":34,"id":"KfhUA9Kfp8Y","t":"dbt Packages","p":"04-analytics-engineering/10-dbt-packages.md","lp":"","mid":"04","mt":"Analytics Engineering"},{"n":35,"id":"t4OeWHW3SsA","t":"dbt Commands","p":"04-analytics-engineering/11-dbt-commands.md","lp":"","mid":"04","mt":"Analytics Engineering"},{"n":36,"id":"f6vg7lGqZx0","t":"Introduction to Bruin","p":"05-data-platforms/01-introduction.md","lp":"","mid":"05","mt":"Data Platforms"},{"n":37,"id":"JJwHKSidX_c","t":"Getting Started with Bruin","p":"05-data-platforms/02-getting-started.md","lp":"","mid":"05","mt":"Data Platforms"},{"n":38,"id":"q0k_iz9kWsI","t":"Building an End-to-End Pipeline with NYC Taxi Data","p":"05-data-platforms/03-nyc-taxi-pipeline.md","lp":"","mid":"05","mt":"Data Platforms"},{"n":39,"id":"224xH7h8OaQ","t":"Using Bruin MCP with AI Agents","p":"05-data-platforms/04-bruin-mcp.md","lp":"","mid":"05","mt":"Data Platforms"},{"n":40,"id":"uBqjLEwF8rc","t":"Deploying to Bruin Cloud","p":"05-data-platforms/05-bruin-cloud.md","lp":"","mid":"05","mt":"Data Platforms"},{"n":41,"id":"YWDjnSxbBtY","t":"Core Concepts: Projects","p":"05-data-platforms/06-core-concepts-projects.md","lp":"","mid":"05","mt":"Data Platforms"},{"n":42,"id":"uzp_DiR4Sok","t":"Core Concepts: Pipelines","p":"05-data-platforms/07-core-concepts-pipelines.md","lp":"","mid":"05","mt":"Data Platforms"},{"n":43,"id":"ZElY5SoqrwI","t":"Core Concepts: Assets","p":"05-data-platforms/08-core-concepts-assets.md","lp":"","mid":"05","mt":"Data Platforms"},{"n":44,"id":"XCx0nDmhhxA","t":"Core Concepts: Variables","p":"05-data-platforms/09-core-concepts-variables.md","lp":"","mid":"05","mt":"Data Platforms"},{"n":45,"id":"3nykPEs_V7E","t":"Core Concepts: Commands","p":"05-data-platforms/10-core-concepts-commands.md","lp":"","mid":"05","mt":"Data Platforms"},{"n":46,"id":"dcHe5Fl3MF8","t":"Introduction to Batch Processing","p":"06-batch/01-introduction-to-batch-processing.md","lp":"","mid":"06","mt":"Batch Processing"},{"n":47,"id":"FhaqbEOuQ8U","t":"Introduction to Spark","p":"06-batch/02-introduction-to-spark.md","lp":"","mid":"06","mt":"Batch Processing"},{"n":48,"id":"hqUbB9c8sKg","t":"Installing Spark","p":"06-batch/03-installing-spark.md","lp":"","mid":"06","mt":"Batch Processing"},{"n":49,"id":"r_Sf6fCB40c","t":"First Look at Spark/PySpark","p":"06-batch/04-first-look-at-spark.md","lp":"","mid":"06","mt":"Batch Processing"},{"n":50,"id":"ti3aC1m3rE8","t":"Spark DataFrames","p":"06-batch/05-spark-dataframes.md","lp":"","mid":"06","mt":"Batch Processing"},{"n":51,"id":"CI3P4tAtru4","t":"Preparing Yellow and Green Taxi Data","p":"06-batch/06-preparing-taxi-data.md","lp":"","mid":"06","mt":"Batch Processing"},{"n":52,"id":"uAlp2VuZZPY","t":"SQL with Spark","p":"06-batch/07-sql-with-spark.md","lp":"","mid":"06","mt":"Batch Processing"},{"n":53,"id":"68CipcZt7ZA","t":"Anatomy of a Spark Cluster","p":"06-batch/08-anatomy-of-a-spark-cluster.md","lp":"","mid":"06","mt":"Batch Processing"},{"n":54,"id":"9qrDsY_2COo","t":"GroupBy in Spark","p":"06-batch/09-groupby-in-spark.md","lp":"","mid":"06","mt":"Batch Processing"},{"n":55,"id":"lu7TrqAWuH4","t":"Joins in Spark","p":"06-batch/10-joins-in-spark.md","lp":"","mid":"06","mt":"Batch Processing"},{"n":56,"id":"Bdu-xIrF3OM","t":"Operations on Spark RDDs","p":"06-batch/11-operations-on-spark-rdds.md","lp":"","mid":"06","mt":"Batch Processing"},{"n":57,"id":"k3uB2K99roI","t":"Spark RDD mapPartition","p":"06-batch/12-spark-rdd-mappartition.md","lp":"","mid":"06","mt":"Batch Processing"},{"n":58,"id":"Yyz293hBVcQ","t":"Connecting to Google Cloud Storage","p":"06-batch/13-connecting-to-google-cloud-storage.md","lp":"","mid":"06","mt":"Batch Processing"},{"n":59,"id":"HXBwSlXo5IA","t":"Creating a Local Spark Cluster","p":"06-batch/14-creating-a-local-spark-cluster.md","lp":"","mid":"06","mt":"Batch Processing"},{"n":60,"id":"osAiAYahvh8","t":"Setting up a Dataproc Cluster","p":"06-batch/15-setting-up-a-dataproc-cluster.md","lp":"","mid":"06","mt":"Batch Processing"},{"n":61,"id":"HIm2BOj8C0Q","t":"Connecting Spark to BigQuery","p":"06-batch/16-connecting-spark-to-bigquery.md","lp":"","mid":"06","mt":"Batch Processing"},{"n":62,"id":"YDUgFeHQzJU","t":"PyFlink: Stream Processing Workshop","p":"07-streaming/01-introduction.md","lp":"","mid":"07","mt":"Streaming"},{"n":63,"id":"P2loELMUUeI","t":"Q&A","p":"07-streaming/14-questions-and-answers.md","lp":"","mid":"07","mt":"Streaming"}],"modules":[{"id":"01","title":"Containerization and Infrastructure as Code","count":3},{"id":"02","title":"Workflow Orchestration","count":16},{"id":"03","title":"Data Warehousing","count":6},{"id":"04","title":"Analytics Engineering","count":10},{"id":"05","title":"Data Platforms","count":10},{"id":"06","title":"Batch Processing","count":16},{"id":"07","title":"Streaming","count":2}]};
+
+(function () {
+  "use strict";
+
+  var EPS = DATA.episodes, MODS = DATA.modules;
+  var KEY = "dezc_player_v1", SPKEY = "dezc_player_speed";
+  var store = {}, speed = 1;
+  try { store = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) { store = {}; }
+  try { speed = parseFloat(localStorage.getItem(SPKEY)) || 1; } catch (e) { speed = 1; }
+
+  var $ = function (id) { return document.getElementById(id); };
+  var listEl = $("list"), veil = $("veil");
+  var player = null, apiReady = false, cur = -1, pollTimer = null, wantSeek = 0;
+  var autoNext = true;
+
+  function rec(id) { return store[id] || (store[id] = {}); }
+  function isDone(id) { return !!(store[id] && store[id].d); }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} }
+
+  function fmt(s) {
+    s = Math.max(0, Math.round(s || 0));
+    var m = Math.floor(s / 60), r = s % 60;
+    return m + ":" + (r < 10 ? "0" : "") + r;
+  }
+  function clampIdx() { return Math.max(0, Math.min(EPS.length - 1, cur)); }
+
+  /* ---------- 列表渲染 ---------- */
+  function renderList() {
+    var q = ($("q").value || "").trim().toLowerCase();
+    var onlyTodo = $("only-todo").checked;
+    var html = "", lastMod = null, shown = 0;
+
+    for (var i = 0; i < EPS.length; i++) {
+      var e = EPS[i], d = isDone(e.id), r = store[e.id] || {};
+      if (onlyTodo && d) continue;
+      if (q && (e.t + " " + e.mt).toLowerCase().indexOf(q) < 0) continue;
+
+      if (e.mid !== lastMod) {
+        lastMod = e.mid;
+        var cnt = 0, done = 0;
+        for (var j = 0; j < EPS.length; j++) {
+          if (EPS[j].mid === e.mid) { cnt++; if (isDone(EPS[j].id)) done++; }
+        }
+        html += '<div class="mhead"><span class="mi">' + e.mid + "</span>" +
+                '<span class="mn">' + esc(e.mt) + "</span>" +
+                '<span class="mc">' + done + "/" + cnt + "</span></div>";
+      }
+
+      var pct = 0;
+      if (r.t && r.dur) pct = Math.min(99, Math.round(r.t / r.dur * 100));
+      if (d) pct = 100;
+      var sub = d ? "已看完" : (r.t > 5 ? "看到 " + fmt(r.t) + (r.dur ? " / " + fmt(r.dur) : "") : "未开始");
+
+      html += '<button class="ep' + (i === cur ? " cur" : "") + (d ? " done" : "") +
+              '" data-i="' + i + '">' +
+              '<span class="no">' + pad(i + 1) + "</span>" +
+              '<span class="body"><span class="t">' + esc(e.t) + "</span>" +
+              '<span class="sub">' + sub + "</span></span>" +
+              '<span class="mark"></span>' +
+              (pct && pct < 100 ? '<i class="pb" style="width:' + pct + '%"></i>' : "") +
+              "</button>";
+      shown++;
+    }
+    if (!shown) html = '<div class="empty">没有符合条件的单元</div>';
+    listEl.innerHTML = html;
+    $("st-done").textContent = EPS.filter(function (e) { return isDone(e.id); }).length;
+    $("st-total").textContent = EPS.length;
+  }
+
+  function pad(n) { return n < 10 ? "0" + n : "" + n; }
+  function esc(s) {
+    return String(s).replace(/[&<>"]/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+    });
+  }
+
+  /* ---------- 播放器 ---------- */
+  function showVeil(html) { veil.innerHTML = html; veil.hidden = false; }
+  function hideVeil() { veil.hidden = true; }
+
+  function ytOpen(id) { return "https://www.youtube.com/watch?v=" + id; }
+
+  function loadAPI() {
+    if (window.YT && window.YT.Player) { apiReady = true; initPlayer(); return; }
+    window.onYouTubeIframeAPIReady = function () { apiReady = true; initPlayer(); };
+    var s = document.createElement("script");
+    s.src = "https://www.youtube.com/iframe_api";
+    s.onerror = function () { apiDown(); };
+    document.head.appendChild(s);
+    setTimeout(function () { if (!apiReady && player === null) apiDown(); }, 12000);
+  }
+
+  function apiDown() {
+    if (player) return;
+    var i = clampIdx(), e = EPS[i];
+    showVeil("<h3>播放器没能加载</h3><p>YouTube 的播放组件没拿到，通常是加速器没覆盖 <code>youtube.com</code>，" +
+      "或者你是在本地用 <code>file://</code> 打开。点下面直接去 YouTube 看，选集列表照样能用。</p>" +
+      '<div class="acts"><a href="' + ytOpen(e.id) + '" target="_blank" rel="noopener">在 YouTube 打开</a>' +
+      '<button class="ghost" id="veil-retry">重试</button></div>');
+    $("veil-retry").onclick = function () { hideVeil(); player = null; apiReady = false; loadAPI(); };
+  }
+
+  function initPlayer() {
+    var i = clampIdx(), e = EPS[i];
+    player = new YT.Player("player", {
+      videoId: e.id,
+      host: "https://www.youtube.com",
+      playerVars: {
+        autoplay: 0, rel: 0, modestbranding: 1, playsinline: 1,
+        start: startAt(e),
+        origin: location.protocol === "http:" || location.protocol === "https:" ? location.origin : undefined
+      },
+      events: {
+        onReady: function (ev) {
+          hideVeil();
+          try { ev.target.setPlaybackRate(speed); } catch (x) {}
+          startPoll();
+          paint(ev.target);
+        },
+        onStateChange: function (ev) {
+          if (ev.data === YT.PlayerState.ENDED) onEnded();
+          if (ev.data === YT.PlayerState.PLAYING) startPoll();
+        },
+        onError: function (ev) {
+          var code = ev.data;
+          var hint;
+          if (code === 153 || code === 152) {
+            hint = "YouTube 拒绝了这次嵌入：请求里没有站点来源（错误 " + code + "）。" +
+              (location.protocol === "file:" ? "本地 <code>file://</code> 打开就会这样，用线上版即可。" : "刷新一次页面通常能恢复。");
+          } else if (code === 101 || code === 150) {
+            hint = "这节课作者禁止了站外嵌入，只能去 YouTube 上看。";
+          } else {
+            hint = "播放出错了（错误码 " + code + "），多半是加速通道断了，刷新页面或重开加速器再试。";
+          }
+          var online = location.protocol === "file:"
+            ? '<a class="primary" href="https://angle-812.github.io/data-engineering-zoomcamp/player.html" target="_blank" rel="noopener">用线上版播放</a>'
+            : "";
+          showVeil("<h3>播不了</h3><p>" + hint + "</p>" +
+            '<div class="acts">' + online +
+            '<a href="' + ytOpen(EPS[clampIdx()].id) + '" target="_blank" rel="noopener">在 YouTube 打开</a>' +
+            '<button class="ghost" id="veil-next">跳过这节</button></div>');
+          $("veil-next").onclick = function () { hideVeil(); next(); };
+        }
+      }
+    });
+  }
+
+  function startAt(e) {
+    var r = store[e.id] || {};
+    if (r.d) return 0;
+    if (r.t && r.t > 20) return Math.floor(r.t);
+    return 0;
+  }
+
+  function startPoll() {
+    if (pollTimer) return;
+    pollTimer = setInterval(tick, 4000);
+  }
+
+  function tick() {
+    if (!player || typeof player.getCurrentTime !== "function") return;
+    var i = clampIdx(), e = EPS[i];
+    if (!e) return;
+    var t = 0, dur = 0;
+    try { t = player.getCurrentTime() || 0; dur = player.getDuration() || 0; } catch (x) { return; }
+    if (t < 1) return;
+    var r = rec(e.id);
+    var changed = Math.abs((r.t || 0) - t) > 2;
+    r.t = t;
+    if (dur) r.dur = dur;
+    if (changed) { save(); paintRow(i); }
+  }
+
+  /* ---------- 切换 ---------- */
+  function select(idx, opts) {
+    opts = opts || {};
+    if (idx < 0 || idx >= EPS.length) return;
+    cur = idx;
+    var e = EPS[idx];
+
+    $("ep-mod").innerHTML = "模块 " + esc(e.mid) + " · " + esc(e.mt);
+    $("ep-title").textContent = e.t;
+    $("lnk-doc").href = docHref(e);
+    $("btn-prev").disabled = idx === 0;
+    $("btn-next").disabled = idx === EPS.length - 1;
+    syncDoneBtn();
+    markCurrentRow();
+
+    try {
+      history.replaceState(null, "", "?v=" + e.id + "#ep" + (idx + 1));
+    } catch (x) {}
+
+    if (!player || typeof player.loadVideoById !== "function") return;
+    hideVeil();
+    var start = opts.fromStart ? 0 : startAt(e);
+    player.loadVideoById({ videoId: e.id, startSeconds: start });
+    try { player.setPlaybackRate(speed); } catch (x) {}
+    if (opts.autoplay) { try { player.playVideo(); } catch (x) {} }
+  }
+
+  function markCurrentRow() {
+    var rows = listEl.querySelectorAll(".ep");
+    for (var i = 0; i < rows.length; i++) {
+      rows[i].classList.toggle("cur", +rows[i].getAttribute("data-i") === cur);
+    }
+    var c = listEl.querySelector(".ep.cur");
+    if (c && c.scrollIntoView) c.scrollIntoView({ block: "nearest" });
+  }
+
+  function paintRow(i) {
+    var e = EPS[i], row = listEl.querySelector('.ep[data-i="' + i + '"]');
+    if (!row) return;
+    var r = store[e.id] || {}, d = !!r.d;
+    row.classList.toggle("done", d);
+    var sub = row.querySelector(".sub");
+    if (sub) sub.textContent = d ? "已看完"
+      : (r.t > 5 ? "看到 " + fmt(r.t) + (r.dur ? " / " + fmt(r.dur) : "") : "未开始");
+    var bar = row.querySelector(".pb");
+    var pct = d ? 100 : (r.t && r.dur ? Math.min(99, Math.round(r.t / r.dur * 100)) : 0);
+    if (pct > 0 && pct < 100) {
+      if (!bar) { bar = document.createElement("i"); bar.className = "pb"; row.appendChild(bar); }
+      bar.style.width = pct + "%";
+    } else if (bar) { bar.remove(); }
+  }
+
+  function next() { if (cur < EPS.length - 1) select(cur + 1, { autoplay: true }); }
+  function prev() { if (cur > 0) select(cur - 1, { autoplay: true }); }
+
+  function onEnded() {
+    var e = EPS[cur];
+    if (!e) return;
+    var r = rec(e.id);
+    r.t = r.dur || r.t || 0;
+    r.d = 1;
+    save();
+    paintRow(cur);
+    $("st-done").textContent = EPS.filter(function (x) { return isDone(x.id); }).length;
+    syncDoneBtn();
+    if (autoNext && cur < EPS.length - 1) {
+      setTimeout(function () { if (autoNext) select(cur + 1, { autoplay: true }); }, 900);
+    }
+  }
+
+  function syncDoneBtn() {
+    var e = EPS[cur]; if (!e) return;
+    var d = isDone(e.id);
+    $("btn-done").textContent = d ? "取消已看" : "标记已看";
+    $("btn-done").classList.toggle("on", d);
+  }
+
+  function docHref(e) {
+    if (location.protocol === "file:" && e.lp) return e.lp;
+    return DATA.gh + e.p;
+  }
+
+  /* ---------- 事件 ---------- */
+  listEl.addEventListener("click", function (ev) {
+    var b = ev.target.closest(".ep");
+    if (b) select(+b.getAttribute("data-i"), { autoplay: true });
+  });
+
+  $("btn-next").onclick = next;
+  $("btn-prev").onclick = prev;
+
+  $("btn-done").onclick = function () {
+    var e = EPS[cur]; if (!e) return;
+    var r = rec(e.id);
+    if (r.d) { r.d = 0; if (r.dur) r.t = Math.min(r.t || 0, r.dur - 5); }
+    else { r.d = 1; r.t = r.dur || r.t || 1; }
+    save();
+    paintRow(cur);
+    syncDoneBtn();
+    renderList();
+  };
+
+  $("btn-restart").onclick = function () {
+    var e = EPS[cur]; if (!e) return;
+    var r = rec(e.id);
+    r.t = 0;
+    if (r.d) r.d = 0;
+    save();
+    paintRow(cur); syncDoneBtn();
+    select(cur, { fromStart: true, autoplay: true });
+  };
+
+  $("autoplay").onchange = function () { autoNext = this.checked; };
+
+  var spds = document.querySelectorAll(".spd");
+  function paintSpeed() {
+    for (var i = 0; i < spds.length; i++) {
+      spds[i].classList.toggle("on", parseFloat(spds[i].getAttribute("data-speed")) === speed);
+    }
+  }
+  for (var k = 0; k < spds.length; k++) {
+    spds[k].onclick = function () {
+      speed = parseFloat(this.getAttribute("data-speed"));
+      try { localStorage.setItem(SPKEY, String(speed)); } catch (e) {}
+      if (player && player.setPlaybackRate) { try { player.setPlaybackRate(speed); } catch (x) {} }
+      paintSpeed();
+    };
+  }
+  paintSpeed();
+
+  $("q").addEventListener("input", renderList);
+  $("only-todo").addEventListener("change", renderList);
+
+  document.addEventListener("keydown", function (ev) {
+    var t = ev.target.tagName;
+    if (t === "INPUT" || t === "TEXTAREA") return;
+    if (ev.key === "ArrowRight") { ev.preventDefault(); next(); }
+    else if (ev.key === "ArrowLeft") { ev.preventDefault(); prev(); }
+    else if (ev.key === " ") {
+      ev.preventDefault();
+      if (!player) return;
+      try {
+        if (player.getPlayerState() === 1) player.pauseVideo();
+        else player.playVideo();
+      } catch (x) {}
+    } else if (ev.key === "Escape") {
+      listEl.scrollTop = 0;
+    }
+  });
+
+  /* ---------- 启动 ---------- */
+  (function boot() {
+    if (location.protocol === "file:") $("notice").hidden = false;
+
+    var m = /[?&]v=([A-Za-z0-9_-]{11})/.exec(location.search);
+    var startId = m ? m[1] : null;
+    var idx = 0;
+    if (startId) {
+      for (var i = 0; i < EPS.length; i++) if (EPS[i].id === startId) { idx = i; break; }
+    } else {
+      for (var j = 0; j < EPS.length; j++) if (!isDone(EPS[j].id)) { idx = j; break; }
+    }
+    cur = idx;
+    renderList();
+
+    var e = EPS[idx];
+    $("ep-mod").innerHTML = "模块 " + esc(e.mid) + " · " + esc(e.mt);
+    $("ep-title").textContent = e.t;
+    $("lnk-doc").href = docHref(e);
+    $("btn-prev").disabled = idx === 0;
+    $("btn-next").disabled = idx === EPS.length - 1;
+    syncDoneBtn();
+    markCurrentRow();
+
+    loadAPI();
+  })();
+
+  window.addEventListener("beforeunload", tick);
+})();
+</script>
+</body>
+</html>
