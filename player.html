@@ -250,7 +250,7 @@ const DATA = {"gh":"https://github.com/DataTalksClub/data-engineering-zoomcamp/b
   "use strict";
 
   var EPS = DATA.episodes, MODS = DATA.modules;
-  var KEY = "dezc_player_v1", SPKEY = "dezc_player_speed";
+  var KEY = "dezc_player_v1", SPKEY = "dezc_player_speed", DKEY = "dezc.progress.v1";
   var store = {}, speed = 1;
   try { store = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) { store = {}; }
   try { speed = parseFloat(localStorage.getItem(SPKEY)) || 1; } catch (e) { speed = 1; }
@@ -263,6 +263,22 @@ const DATA = {"gh":"https://github.com/DataTalksClub/data-engineering-zoomcamp/b
   function rec(id) { return store[id] || (store[id] = {}); }
   function isDone(id) { return !!(store[id] && store[id].d); }
   function save() { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} }
+
+  /* 与看板（dezc.progress.v1，键为单元路径）共用完成度 */
+  function dashRead() {
+    try { return JSON.parse(localStorage.getItem(DKEY) || "{}") || {}; } catch (e) { return {}; }
+  }
+  function dashWrite(p, on) {
+    var d = dashRead();
+    if (on) d[p] = true; else delete d[p];
+    try { localStorage.setItem(DKEY, JSON.stringify(d)); } catch (e) {}
+  }
+  function seedFromDash() {
+    var d = dashRead();
+    for (var i = 0; i < EPS.length; i++) {
+      if (d[EPS[i].p] && !(store[EPS[i].id] && store[EPS[i].id].d)) rec(EPS[i].id).d = 1;
+    }
+  }
 
   function fmt(s) {
     s = Math.max(0, Math.round(s || 0));
@@ -484,6 +500,7 @@ const DATA = {"gh":"https://github.com/DataTalksClub/data-engineering-zoomcamp/b
     r.t = r.dur || r.t || 0;
     r.d = 1;
     save();
+    dashWrite(e.p, true);
     paintRow(cur);
     $("st-done").textContent = EPS.filter(function (x) { return isDone(x.id); }).length;
     syncDoneBtn();
@@ -519,6 +536,7 @@ const DATA = {"gh":"https://github.com/DataTalksClub/data-engineering-zoomcamp/b
     if (r.d) { r.d = 0; if (r.dur) r.t = Math.min(r.t || 0, r.dur - 5); }
     else { r.d = 1; r.t = r.dur || r.t || 1; }
     save();
+    dashWrite(e.p, !!r.d);
     paintRow(cur);
     syncDoneBtn();
     renderList();
@@ -530,6 +548,7 @@ const DATA = {"gh":"https://github.com/DataTalksClub/data-engineering-zoomcamp/b
     r.t = 0;
     if (r.d) r.d = 0;
     save();
+    dashWrite(e.p, false);
     paintRow(cur); syncDoneBtn();
     select(cur, { fromStart: true, autoplay: true });
   };
@@ -575,6 +594,7 @@ const DATA = {"gh":"https://github.com/DataTalksClub/data-engineering-zoomcamp/b
   /* ---------- 启动 ---------- */
   (function boot() {
     if (location.protocol === "file:") $("notice").hidden = false;
+    seedFromDash();
 
     var m = /[?&]v=([A-Za-z0-9_-]{11})/.exec(location.search);
     var startId = m ? m[1] : null;
