@@ -64,6 +64,8 @@
   }
   .btn:hover{border-color:var(--accent-line);color:var(--accent)}
   .btn[aria-pressed="true"]{background:var(--accent-weak);border-color:var(--accent-line);color:var(--accent)}
+  a.btn{display:inline-block;text-decoration:none;line-height:1.5}
+  a.btn.go{background:var(--accent-weak);border-color:var(--accent-line);color:var(--accent);font-weight:600}
 
   /* ---------- week strip ---------- */
   h2.sec{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted-2);
@@ -154,6 +156,7 @@
       <button class="btn" id="btn-expand">全部展开</button>
       <button class="btn" id="btn-collapse">全部收起</button>
       <button class="btn" id="btn-hide" aria-pressed="false">只看未完成</button>
+      <a class="btn go" id="btn-player" href="player.html">▶ 选集播放</a>
       <button class="btn" id="btn-reset">清空进度</button>
     </div>
   </header>
@@ -211,6 +214,11 @@ const save = () => { try { localStorage.setItem(KEY, JSON.stringify(done)); } ca
 const allUnits = () => DATA.modules.flatMap(m => m.units);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const LOCAL = location.protocol === "file:" || /^(127\.0\.0\.1|localhost)$/.test(location.hostname);
+// 本地 file:// 打开时 YouTube 拒绝嵌入（错误 153），选集页改指向线上版
+if (location.protocol === "file:") {
+  const bp = document.getElementById("btn-player");
+  if (bp) { bp.href = "https://angle-812.github.io/data-engineering-zoomcamp/player.html"; bp.target = "_blank"; }
+}
 // 纯本地才显示「离线讲义」入口，线上没有 course/ 目录
 if (!LOCAL) { const el = document.getElementById("lk-local"); if (el) el.remove(); }
 const hrefOf = (mdPath, localPath) => (LOCAL && localPath) ? localPath : (GH + mdPath);
