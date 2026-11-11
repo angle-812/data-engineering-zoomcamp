@@ -240,7 +240,7 @@
 
 <div class="foot">
   键盘：<kbd>←</kbd><kbd>→</kbd> 上/下一节 · <kbd>空格</kbd> 播放或暂停 · <kbd>Esc</kbd> 回列表顶部
-  <div class="tip" id="lynx">看完一节会自动跳到下一节；进度保存在本机浏览器里，换设备不同步。</div>
+  <div class="tip" id="lynx">看完一节会自动跳到下一节；进度存在本机浏览器里，换设备不同步。列表只收有视频的 63 个单元，纯图文单元回看板看。</div>
 </div>
 
 <script>
@@ -439,6 +439,10 @@ const DATA = {"gh":"https://github.com/DataTalksClub/data-engineering-zoomcamp/b
 
     if (!player || typeof player.loadVideoById !== "function") return;
     hideVeil();
+    // 手机上列表在播放器下方，选完回到顶部，不然看不到画面
+    if (window.innerWidth <= 1000 && !opts.keepScroll) {
+      try { window.scrollTo({ top: 0, behavior: "smooth" }); } catch (x) { window.scrollTo(0, 0); }
+    }
     var start = opts.fromStart ? 0 : startAt(e);
     player.loadVideoById({ videoId: e.id, startSeconds: start });
     try { player.setPlaybackRate(speed); } catch (x) {}
