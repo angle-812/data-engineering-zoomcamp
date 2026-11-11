@@ -156,7 +156,7 @@
       <button class="btn" id="btn-expand">全部展开</button>
       <button class="btn" id="btn-collapse">全部收起</button>
       <button class="btn" id="btn-hide" aria-pressed="false">只看未完成</button>
-      <a class="btn go" id="btn-player" href="player.html">▶ 选集播放</a>
+      <a class="btn go" id="btn-player" href="player.html">▶ 学习台</a>
       <button class="btn" id="btn-reset">清空进度</button>
     </div>
   </header>
@@ -220,6 +220,10 @@ const save = () => { try { localStorage.setItem(KEY, JSON.stringify(done)); } ca
 const allUnits = () => DATA.modules.flatMap(m => m.units);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const LOCAL = location.protocol === "file:" || /^(127\.0\.0\.1|localhost)$/.test(location.hostname);
+// 本地 file:// 打开时视频播不了（YouTube 错误 153），学习台一律指线上版
+const PLAYER_BASE = location.protocol === "file:"
+  ? "https://angle-812.github.io/data-engineering-zoomcamp/player.html"
+  : "player.html";
 // 本地 file:// 打开时 YouTube 拒绝嵌入（错误 153），选集页改指向线上版
 if (location.protocol === "file:") {
   const bp = document.getElementById("btn-player");
@@ -236,7 +240,7 @@ function unitRow(u) {
     <input type="checkbox" id="${id}" ${done[u.p] ? "checked" : ""}>
     <label for="${id}" title="${esc(u.t)}">${esc(u.t)}</label>
     <span class="tags">
-      ${u.yt ? `<a class="tag v" href="https://youtu.be/${u.yt}" target="_blank" rel="noopener">▶ 视频</a>` : ""}
+      ${u.yt ? `<a class="tag v" href="${PLAYER_BASE}?v=${u.yt}" target="_blank" rel="noopener" title="在学习台里看这一节（视频 + 讲义）">▶ 学习台</a>` : ""}
       <a class="tag" href="${hrefOf(u.p, u.lp)}" target="_blank" rel="noopener">${useLocal ? "打开" : "原文"}</a>
       ${useLocal ? `<a class="tag" href="${GH + esc(u.p)}" target="_blank" rel="noopener">GH</a>` : ""}
     </span>
