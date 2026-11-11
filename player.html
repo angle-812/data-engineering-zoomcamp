@@ -341,6 +341,16 @@
   .ansfoot .grow{flex:1}
   .dempty{padding:26px 4px;color:var(--muted);font-size:13.5px}
 
+  /* 中英对照 */
+  .tr-zh{
+    color:var(--muted);font-size:.93em;line-height:1.72;
+    border-left:2px solid var(--accent-line);padding-left:10px;
+    margin:.28em 0 .7em;
+  }
+  .tr-zh.inline{display:inline;border:0;padding:0;margin:0}
+  .docbody h1 + .tr-zh,.docbody h2 + .tr-zh,.docbody h3 + .tr-zh{font-weight:600;color:var(--muted)}
+  .tr-prog{color:var(--accent);font-variant-numeric:tabular-nums}
+
   /* ================= 书本模式 ================= */
   /* 章头：可折叠，带视频进度和作业入口 */
   .mhead{cursor:pointer;user-select:none;gap:7px;border-radius:8px}
@@ -437,6 +447,7 @@
         <button class="btn sm" id="btn-done">标记已看</button>
         <button class="btn sm" id="btn-restart">从头播</button>
         <a class="btn sm" id="lnk-doc" href="#" target="_blank" rel="noopener">讲义</a>
+        <button class="btn sm" id="btn-subs" title="视频怎么开中英双字幕">双语字幕</button>
         <span class="sep"></span>
         <button class="btn sm spd" data-speed="1">1×</button>
         <button class="btn sm spd" data-speed="1.25">1.25×</button>
@@ -456,6 +467,7 @@
       </div>
       <span class="dn" id="doc-name">讲义</span>
       <span class="acts">
+        <button class="btn sm" id="btn-tr" title="原文下面加一行中文对照（浏览器内置翻译，离线可用）">中英对照</button>
         <button class="btn sm" id="doc-reload" title="重新载入讲义">重载</button>
         <a class="btn sm" id="doc-open" href="#" target="_blank" rel="noopener">原文</a>
       </span>
@@ -507,6 +519,37 @@
 
       <h4>拿证书要满足</h4>
       <p class="note">7 份计分作业 + 期末项目 + 给 3 位同学的项目写互评，且都要在 live cohort 期间完成。纯自学没有证书，但项目照样能写进简历。</p>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="subs" hidden>
+  <div class="mbox" style="width:min(720px,100%)">
+    <div class="mtop">
+      <b>视频中英双字幕怎么开</b>
+      <button class="btn sm" id="subs-close">关闭</button>
+    </div>
+    <div class="mbody">
+      <p class="lead">课程视频是英文的，官方字幕也是英文。要中文，靠你电脑上已经装的「沉浸式翻译」扩展——它能给 YouTube 叠一层双语字幕，还能顺手翻讲义。</p>
+
+      <h4>一次设置，以后全自动</h4>
+      <ol style="padding-left:1.3em;margin:8px 0">
+        <li>浏览器右上角点扩展图标 → 沉浸式翻译 → <b>设置</b>（或直接按 <b>Alt+A</b> 看有没有反应）。</li>
+        <li>左侧找 <b>视频字幕</b> / <b>YouTube 字幕</b> → 打开「启用字幕翻译」。</li>
+        <li>字幕样式选 <b>双语</b>（上英文下中文，或反过来），字号调到你自己舒服。</li>
+        <li>回到播放页刷新一次。播放时下面就会出现两行字幕。</li>
+      </ol>
+
+      <h4>不想装扩展的替代方案</h4>
+      <ul style="padding-left:1.3em;margin:8px 0">
+        <li>YouTube 自带字幕：播放器右下角 <b>CC</b> → 设置 → 字幕 → 自动翻译 → 中文（只有中文，不是双语）。</li>
+        <li>学习台右栏讲义点 <b>中英对照</b>，原文下面加中文——视频听不懂时看讲义往往更快。</li>
+      </ul>
+
+      <h4>为什么不能在这里直接给你双语字幕</h4>
+      <p class="note">视频跑在 YouTube 的 iframe 里，字幕轨道在它的域内，外面的页面拿不到文本，也就没法自己翻译再叠上去。这是浏览器的同源限制，不是没做。</p>
+
+      <p class="note">讲义那边不依赖扩展：点右栏的「中英对照」，用的是浏览器内置翻译引擎，翻完存在本机，下次打开直接读缓存。</p>
     </div>
   </div>
 </div>
@@ -898,6 +941,7 @@ const DATA = {"gh":"https://github.com/DataTalksClub/data-engineering-zoomcamp/b
     docBodyEl.innerHTML = html;
     fixDocLinks(docBodyEl, p);
     docBodyEl.scrollTop = 0;
+    if (trOn) trRun();   // 开着对照时，换节自动续翻
   }
 
   function loadDoc(e) {
@@ -1079,6 +1123,139 @@ const DATA = {"gh":"https://github.com/DataTalksClub/data-engineering-zoomcamp/b
   $("tab-hw").onclick = function () { paneMid = midOf(); setPane("hw"); };
   $("tab-note").onclick = function () { setPane("note"); };
 
+  /* ---------- 中英对照：浏览器内置翻译，离线可用 ---------- */
+  var TRKEY = "dezc_tr_v1", trCache = {};
+  try { trCache = JSON.parse(localStorage.getItem(TRKEY) || "{}") || {}; } catch (x) { trCache = {}; }
+  var trOn = false, trInst = null, trBusy = false;
+  var trBtn = $("btn-tr");
+  var BLK = "p,li,h1,h2,h3,h4,td,th,blockquote";
+
+  function trSave() { try { localStorage.setItem(TRKEY, JSON.stringify(trCache)); } catch (x) {} }
+
+  function trBlocks() {
+    var all = docBodyEl.querySelectorAll(BLK), out = [], seen = [];
+    for (var i = 0; i < all.length; i++) {
+      var el = all[i];
+      if (el.closest(".tr-zh")) continue;
+      var t = (el.textContent || "").replace(/\s+/g, " ").trim();
+      if (t.length < 8 || t.length > 900) continue;
+      if (!/[A-Za-z]{3}/.test(t)) continue;
+      if (seen.indexOf(el) >= 0) continue;
+      seen.push(el);
+      out.push({ el: el, t: t });
+    }
+    return out;
+  }
+
+  function trClear() {
+    var n = docBodyEl.querySelectorAll(".tr-zh");
+    for (var i = n.length - 1; i >= 0; i--) n[i].remove();
+  }
+
+  function trPaint(list, arr) {
+    for (var i = 0; i < list.length; i++) {
+      if (!arr[i]) continue;
+      var d = document.createElement("div");
+      d.className = "tr-zh";
+      d.textContent = arr[i];
+      list[i].el.parentNode.insertBefore(d, list[i].el.nextSibling);
+    }
+  }
+
+  function trHint(html) {
+    trOn = false;
+    trBtn.classList.remove("on");
+    trBtn.textContent = "中英对照";
+    var old = $("tr-msg");
+    if (old) old.remove();
+    var box = document.createElement("div");
+    box.className = "derr";
+    box.id = "tr-msg";
+    box.innerHTML = html + '<br><br><button class="btn sm" id="tr-close">知道了</button>';
+    docBodyEl.insertBefore(box, docBodyEl.firstChild);
+    $("tr-close").onclick = function () { box.remove(); };
+  }
+
+  async function trGet() {
+    if (trInst) return trInst;
+    if (typeof Translator === "undefined" || !Translator.create) throw new Error("no-api");
+    var av = "readily";
+    try {
+      if (Translator.availability) av = await Translator.availability({ sourceLanguage: "en", targetLanguage: "zh" });
+    } catch (x) {}
+    if (av === "unavailable") throw new Error("unavailable");
+    trBtn.textContent = av === "downloadable" ? "下载语言包…" : "准备中…";
+    trInst = await Translator.create({ sourceLanguage: "en", targetLanguage: "zh" });
+    return trInst;
+  }
+
+  async function trRun() {
+    if (trBusy) return;
+    var e = EPS[cur]; if (!e) return;
+
+    if (docBodyEl.querySelector(".docframe")) {
+      trHint("<b>本地 file:// 打开时讲义在 iframe 里，翻不了</b>。" +
+        "用桌面上的「启动学习台」从 localhost 打开就能中英对照，或者直接对这些段落用沉浸式翻译（Alt+A）。");
+      return;
+    }
+
+    trClear();
+    var list = trBlocks();
+    if (!list.length) { trOn = false; trBtn.classList.remove("on"); trBtn.textContent = "中英对照"; return; }
+
+    var cached = trCache[e.p];
+    if (cached && cached.length === list.length) {
+      trPaint(list, cached);
+      trBtn.textContent = "双语 ✓";
+      trBtn.classList.add("on");
+      trOn = true;
+      return;
+    }
+
+    trBusy = true;
+    trBtn.classList.add("on");
+    try {
+      var tr = await trGet();
+      var out = [];
+      for (var i = 0; i < list.length; i++) {
+        trBtn.textContent = "翻译 " + (i + 1) + "/" + list.length;
+        try { out.push(await tr.translate(list[i].t)); } catch (x) { out.push(""); }
+      }
+      trCache[e.p] = out; trSave();
+      trPaint(list, out);
+      trBtn.textContent = "双语 ✓";
+      trBtn.classList.add("on");
+      trOn = true;
+    } catch (err) {
+      var m = (err && err.message) || String(err);
+      if (m === "no-api") {
+        trHint("<b>这个浏览器没有内置翻译能力</b>，要用新版 Edge / Chrome。" +
+          "<br><br>替代办法：装「沉浸式翻译」扩展，在讲页面按 <b>Alt+A</b> 整页中英对照，视频字幕也在同一个扩展里开。");
+      } else if (m === "unavailable") {
+        trHint("<b>这台机器上翻译语言包不可用</b>，浏览器策略或系统语言把它关了。" +
+          "<br>用「沉浸式翻译」扩展同样能整页对照，而且能同步翻视频字幕。");
+      } else {
+        trHint("<b>翻译没跑起来</b>：" + esc(m) +
+          "<br><br>首次使用要下载语言包（几十 MB），网络不通就会卡住。接上加速器再点一次，" +
+          "或者直接用「沉浸式翻译」扩展。");
+      }
+    } finally {
+      trBusy = false;
+    }
+  }
+
+  trBtn.onclick = function () {
+    if (trOn) {
+      trClear();
+      trOn = false;
+      trBtn.classList.remove("on");
+      trBtn.textContent = "中英对照";
+      return;
+    }
+    trOn = true;
+    trRun();
+  };
+
   /* ---------- 副屏讲义窗口：和主窗口双向同步 ---------- */
   var readWin = null;
   function openRead() {
@@ -1212,6 +1389,10 @@ const DATA = {"gh":"https://github.com/DataTalksClub/data-engineering-zoomcamp/b
   $("btn-plan").onclick = function () { $("plan").hidden = false; };
   $("plan-close").onclick = function () { $("plan").hidden = true; };
   $("plan").addEventListener("click", function (ev) { if (ev.target === this) this.hidden = true; });
+
+  $("btn-subs").onclick = function () { $("subs").hidden = false; };
+  $("subs-close").onclick = function () { $("subs").hidden = true; };
+  $("subs").addEventListener("click", function (ev) { if (ev.target === this) this.hidden = true; });
 
   /* ---------- 事件 ---------- */
   listEl.addEventListener("click", function (ev) {
