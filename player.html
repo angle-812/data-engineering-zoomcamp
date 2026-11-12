@@ -235,8 +235,15 @@
   .docbody th{background:var(--bg);font-weight:600}
   .docbody img{
     max-width:100%;height:auto;border-radius:8px;border:1px solid var(--line-soft);
-    display:block;margin:.8em 0;
+    display:block;margin:.8em 0;cursor:zoom-in;
   }
+  /* 图片放大层 */
+  .lb{position:fixed;inset:0;z-index:200;background:rgba(8,10,14,.9);
+    display:flex;align-items:center;justify-content:center;padding:20px;cursor:zoom-out}
+  .lb[hidden]{display:none}
+  .lb img{max-width:100%;max-height:100%;border-radius:6px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+  .lb .hint{position:absolute;bottom:14px;left:0;right:0;text-align:center;
+    color:#cfd6e2;font-size:12.5px;opacity:.85}
   .docbody blockquote{
     margin:.8em 0;padding:.2em 0 .2em 12px;border-left:3px solid var(--accent-line);
     color:var(--muted);
@@ -409,6 +416,8 @@
 <div class="top">
   <a class="back" href="index.html">← 看板</a>
   <div class="ttl">学习台 · Data Engineering Zoomcamp</div>
+  <a class="btn sm" href="hub.html" title="所有体系的总入口">总台</a>
+  <a class="btn sm" href="fund/index.html" title="基础预备 32 节">基础预备</a>
   <a class="btn sm" href="daily.html" title="今天这条知识">今日知识</a>
   <a class="btn sm" href="linux/index.html" title="Linux 命令行体系">Linux 体系</a>
   <button class="btn sm vsc" id="btn-read" title="讲义单独开一个窗口，拖到竖屏副屏">副屏讲义</button>
@@ -560,6 +569,8 @@
     </div>
   </div>
 </div>
+
+<div class="lb" id="lb" hidden><img id="lb-img" alt=""><div class="hint">点击任意处或按 Esc 关闭</div></div>
 
 <div class="foot">
   键盘：<kbd>←</kbd><kbd>→</kbd> 上/下一节 · <kbd>空格</kbd> 播放或暂停 · <kbd>Esc</kbd> 回列表顶部
@@ -1538,6 +1549,25 @@ const DATA = {"gh":"https://github.com/DataTalksClub/data-engineering-zoomcamp/b
   })();
 
   window.addEventListener("beforeunload", tick);
+
+  /* ---------- 讲义图片单击放大 ---------- */
+  (function () {
+    var lb = $("lb"), lbImg = $("lb-img");
+    if (!lb || !lbImg) return;
+    docBodyEl.addEventListener("click", function (ev) {
+      var t = ev.target;
+      if (t && t.tagName === "IMG") {
+        lbImg.src = t.currentSrc || t.src;
+        lb.removeAttribute("hidden");
+        ev.preventDefault();
+      }
+    });
+    function close() { lb.setAttribute("hidden", ""); lbImg.src = ""; }
+    lb.addEventListener("click", close);
+    document.addEventListener("keydown", function (ev) {
+      if (ev.key === "Escape" && !lb.hasAttribute("hidden")) { close(); ev.stopPropagation(); }
+    }, true);
+  })();
 })();
 </script>
 </body>
