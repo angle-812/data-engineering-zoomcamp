@@ -72,10 +72,10 @@ code{font-family:var(--mono);font-size:.88em;background:var(--line-soft);
 .trunkfill{position:absolute;left:0;top:0;width:100%;border-radius:3px;height:0;
   background:linear-gradient(180deg,var(--trunk),color-mix(in srgb,var(--trunk) 55%,transparent));
   transition:height .5s ease}
-.cap{display:grid;grid-template-columns:76px minmax(0,1fr);align-items:center;
-  font-size:12.4px;color:var(--muted);margin:2px 0 10px}
-.cap i{grid-column:1;justify-self:start;margin-left:25px;width:10px;height:10px;
-  border-radius:50%;border:2px solid var(--accent);background:var(--card)}
+.cap{position:relative;display:grid;grid-template-columns:76px minmax(0,1fr);
+  align-items:center;font-size:12.4px;color:var(--muted);margin:2px 0 10px;min-height:22px}
+.cap i{position:absolute;left:27px;top:50%;transform:translateY(-50%);
+  width:8px;height:8px;border-radius:50%;border:2px solid var(--accent);background:var(--card)}
 .cap span{grid-column:2}
 .cap.bottom{margin:16px 0 0}
 
@@ -167,6 +167,7 @@ body.no-leaves .bitem{padding-bottom:5px}
   .node,.mrow,.cap{grid-template-columns:52px minmax(0,1fr)}
   .trunk{left:12px}
   .dot{left:5px}
+  .cap i{left:9px}
   .mnode{width:30px;height:30px;font-size:10.5px;justify-self:start;margin-left:2px}
   .bitem{margin-left:-30px;padding-left:12px}
   .bitem::before{left:8px;width:24px}
