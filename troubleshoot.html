@@ -440,13 +440,42 @@ Chrome 不行换 Edge 试一次。能成功就说明是浏览器配置问题，�
 <hr />
 <h2 id="h">H. 重启电脑后就不管用了</h2>
 <p><strong>原因</strong>：加速器没有开机自启。重启后系统代理可能还留着上次的设置，于是所有网站都打不开（就是第 A 节那个症状）。</p>
-<p><strong>修</strong>：加速器 <strong>设置</strong> 里找"开机启动 / 自动启动 / 随系统启动"，打开。</p>
-<p>如果界面里没有这个选项，手动放一个：</p>
-<ol>
-<li><code>Win + R</code> 输入 <code>shell:startup</code> 回车，打开启动文件夹</li>
-<li>把 <code>D:\Program Files\dev-sidecar\dev-sidecar.exe</code> 的<strong>快捷方式</strong>拖进去</li>
-</ol>
-<p><strong>注意</strong>：它启动后要 5～10 秒才接管代理。<strong>刚开机就打开浏览器，可能报"无法连接代理服务器"</strong>，等几秒刷新一下就好，不是故障。</p>
+<p><strong>修</strong>：别再手动点桌面图标了，用做好的一组脚本，双击一次就能定下来。</p>
+<table>
+<thead>
+<tr>
+<th>什么时候</th>
+<th>双击哪个</th>
+<th>干了什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>装一次，以后都不管</td>
+<td><code>安装开机自启.bat</code></td>
+<td>往启动项放一个快捷方式，下次登录自动跑</td>
+</tr>
+<tr>
+<td>想立刻启动（不重启也行）</td>
+<td><code>开机启动.bat</code></td>
+<td>开加速器 → 校验系统代理 → 起学习台 → 开页面</td>
+</tr>
+<tr>
+<td>关机前 / 要断网</td>
+<td><code>停止全部.bat</code></td>
+<td>先清系统代理，再关加速器（顺序反了会没网）</td>
+</tr>
+<tr>
+<td>不想自启了</td>
+<td><code>卸载开机自启.bat</code></td>
+<td>把启动项里的快捷方式删掉</td>
+</tr>
+</tbody>
+</table>
+<p><code>开机启动.bat</code> 的顺序是<strong>先确认端口 31181 通了，再设系统代理</strong>。这样不会出现"代理已经指过去、加速器还没起来"的空窗期——那正是第 A 节所有网站都打不开的成因。</p>
+<p><strong>开机没反应先看日志</strong>：同目录下的 <code>_boot.log</code>，最后一行就该是"全部就绪"。里面写着 <code>[X] 等了 40 秒，端口 31181 还是没起来</code>，就是加速器界面上那个大开关没开，打开它点一下"开启"再重跑。</p>
+<p><strong>手动放启动项的土办法</strong>（脚本不好使时）：<code>Win + R</code> 输 <code>shell:startup</code> 回车，把 <code>开机启动.vbs</code> 的快捷方式拖进去。<strong>注意拖的是 .vbs，不是 .bat</strong>——拖 .bat 每次开机都会弹一个黑窗口。</p>
+<p><strong>注意</strong>：加速器启动后要 5～10 秒才接管代理。<strong>刚开机就打开浏览器，可能报"无法连接代理服务器"</strong>，等几秒刷新一下就好，不是故障。<code>开机启动.bat</code> 已经帮你等了这段时间。</p>
 <hr />
 <h2 id="i-vpn">I. 和其他代理 / VPN 打架</h2>
 <p><strong>症状</strong>：同时开了 Clash、公司 VPN、或者别的加速工具，网络时通时不通，有的网站上得去有的上不去。</p>
