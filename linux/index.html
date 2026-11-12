@@ -27,7 +27,7 @@ body{margin:0;background:var(--bg);color:var(--text);
   font:15px/1.65 "Segoe UI","Microsoft YaHei",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
 a{color:var(--accent);text-decoration:none}
 a:hover{text-decoration:underline}
-.top{position:sticky;top:0;z-index:30;display:flex;gap:10px;align-items:center;
+.top{position:sticky;top:0;z-index:30;display:flex;gap:10px;align-items:center;flex-wrap:wrap;
   padding:10px 16px;background:var(--card);border-bottom:1px solid var(--line)}
 .back{font-size:13px;color:var(--muted)}
 .ttl{font-weight:650;font-size:15.5px}
@@ -38,6 +38,7 @@ a:hover{text-decoration:underline}
   font-size:13px;cursor:pointer;transition:.15s}
 .btn:hover{border-color:var(--accent-line);background:var(--accent-weak);text-decoration:none}
 .btn.sm{padding:4px 9px;font-size:12.5px}
+.btn[hidden]{display:none}
 .btn.go{background:var(--accent);border-color:var(--accent);color:#fff}
 .btn.go:hover{filter:brightness(1.06);background:var(--accent)}
 .stats{font-size:13px;color:var(--muted);margin-left:4px}
@@ -215,7 +216,15 @@ table.map td a{white-space:nowrap}
 .kv .k{color:var(--muted-2);flex:0 0 54px}
 .kv .v{font-family:var(--mono);font-size:12.5px;word-break:break-all}
 .split{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-@media (max-width:760px){.split{grid-template-columns:1fr}}
+.wrap>*,.split>*{min-width:0}
+table.map{width:100%}
+@media (max-width:760px){
+  .split{grid-template-columns:1fr}
+  .card{padding:14px 14px}
+  /* 窄屏让表格里的链接换行，不然 min-content 会把整页撑出屏幕 */
+  table.map th,table.map td{padding:6px 4px}
+  table.map td a{white-space:normal}
+}
 </style>
 </head>
 <body>
