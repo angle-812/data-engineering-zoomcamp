@@ -42,6 +42,7 @@ code{font-family:var(--mono);font-size:.88em;background:var(--line-soft);
   font-size:13px;cursor:pointer;transition:.15s}
 .btn:hover{border-color:var(--accent-line);background:var(--accent-weak);text-decoration:none}
 .btn.sm{padding:4px 9px;font-size:12.5px}
+.btn[hidden]{display:none}
 .btn.go{background:var(--accent);border-color:var(--accent);color:#fff}
 .btn.go:hover{filter:brightness(1.06);background:var(--accent)}
 .stats{font-size:13px;color:var(--muted);margin-left:4px}
@@ -223,6 +224,7 @@ code{font-family:var(--mono);font-size:.88em;background:var(--line-soft);
   .frombar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
     background:var(--blue-weak);border:1px solid var(--accent-line);border-radius:10px;
     padding:8px 12px;margin:0 0 12px;font-size:12.8px;color:var(--text)}
+  .frombar[hidden]{display:none}
   .frombar a{margin-left:auto;font-weight:600;color:var(--blue)}
   .cmd.flash{box-shadow:0 0 0 2px var(--accent),0 0 0 6px var(--accent-weak);
     border-color:var(--accent-line);transition:box-shadow .3s,border-color .3s}
@@ -534,6 +536,17 @@ code{font-family:var(--mono);font-size:.88em;background:var(--line-soft);
     for (var k in done) if (done[k]) last = Math.max(last, +k);
     start = Math.min(last + 1, CHS.length) || 1;
   }
+  /* 节号越界（手改地址、旧链接）时退回最接近的合法节，别留一张白页 */
+  (function () {
+    var i, ok = false;
+    for (i = 0; i < CHS.length; i++) if (CHS[i].no === start) ok = true;
+    if (ok) return;
+    var pick = CHS.length ? CHS[0].no : 1;
+    for (i = 0; i < CHS.length; i++) {
+      if (CHS[i].no <= start && CHS[i].no > pick) pick = CHS[i].no;
+    }
+    start = pick;
+  })();
   /* 从 DE 课程某集跳过来时，给一条「回去」的通道 */
   (function () {
     var bm = location.search.match(/[?&]back=([^&]+)/);
