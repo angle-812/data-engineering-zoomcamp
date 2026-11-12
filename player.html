@@ -47,14 +47,41 @@
   .stats{font-size:12.5px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
   .stats b{color:var(--text);font-size:14.5px}
 
+  /* 三栏：弹性视频区 + 可拖宽的两侧栏（宽度由 panel_resize 写内联样式） */
   .grid{
-    display:grid;
-    grid-template-columns:minmax(0,1.18fr) minmax(330px,.92fr) 300px;
-    gap:16px;max-width:1760px;margin:0 auto;padding:18px;
-    align-items:start;
+    display:flex;gap:0;max-width:1760px;margin:0 auto;padding:18px;
+    align-items:flex-start;
   }
+  .grid > .stage{flex:1 1 auto;min-width:340px}
+  .grid > .doc{flex:0 0 auto;width:min(40vw,600px);min-width:0}
+  .grid > .side{flex:0 0 300px;width:300px;min-width:0}
+
+  /* 拖动条 */
+  .split{
+    flex:0 0 16px;align-self:stretch;min-height:220px;position:relative;
+    cursor:col-resize;touch-action:none;background:transparent;
+  }
+  .split::before{
+    content:"";position:absolute;top:0;bottom:0;left:50%;width:2px;margin-left:-1px;
+    background:var(--line);border-radius:2px;transition:background .15s,width .12s;
+  }
+  .split::after{
+    content:"";position:absolute;top:50%;left:50%;width:6px;height:34px;
+    margin:-17px 0 0 -3px;border-radius:3px;background:var(--line);opacity:.55;
+    transition:background .15s,opacity .15s;
+  }
+  .split:hover::before,.split.drag::before{background:var(--accent);width:3px;margin-left:-1.5px}
+  .split:hover::after,.split.drag::after{background:var(--accent);opacity:1}
+  .split[hidden]{display:none}
+  .dragmask{position:fixed;inset:0;z-index:9999;cursor:col-resize}
+  .dragmask[hidden]{display:none}
+  .btn.tg{opacity:.6}
+  .btn.tg.on{opacity:1;border-color:var(--accent-line);background:var(--accent-weak);color:var(--accent)}
+
   @media (max-width:1000px){
-    .grid{grid-template-columns:minmax(0,1fr);padding:14px}
+    .grid{flex-direction:column;gap:14px;padding:14px}
+    .grid > .doc,.grid > .side{flex:0 0 auto;width:auto}
+    .split{display:none}
   }
 
   /* ---------- 播放区 ---------- */
@@ -469,6 +496,7 @@
   <div class="ttl">学习台 · Data Engineering Zoomcamp</div>
   <a class="btn sm" href="hub.html" title="所有体系的总入口">总台</a>
   <a class="btn sm" href="fund/index.html" title="基础预备 32 节">基础预备</a>
+  <a class="btn sm" href="tree.html" title="干 · 枝 · 叶：卡在哪、该补哪枝">知识树</a>
   <a class="btn sm" href="daily.html" title="今天这条知识">今日知识</a>
   <a class="btn sm" href="linux/index.html" title="Linux 命令行体系">Linux 体系</a>
   <button class="btn sm vsc" id="btn-read" title="讲义单独开一个窗口，拖到竖屏副屏">副屏讲义</button>
@@ -1787,6 +1815,192 @@ const DATA = {"gh":"https://github.com/DataTalksClub/data-engineering-zoomcamp/b
     }, true);
   })();
 })();
+</script>
+<script>
+/* 三栏学习台：拖动分栏改宽 + 单栏一键收起（DE / 基础预备 / Linux 共用）
+   直接内联进各页，不依赖外部文件。 */
+(function () {
+  var grid = document.querySelector("main.grid");
+  if (!grid) return;
+
+  var KEY = "dezc.panels.v1";
+  var st = {};
+  try { st = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) { st = {}; }
+  st.w = st.w || {};
+  st.h = st.h || {};
+
+  var page = location.pathname.indexOf("/fund/") >= 0 ? "fund"
+           : location.pathname.indexOf("/linux/") >= 0 ? "linux" : "de";
+
+  var panels = [].filter.call(grid.children, function (el) {
+    return el.nodeType === 1 && !el.classList.contains("split");
+  });
+  if (panels.length < 2) return;
+
+  var flexAt = -1, i;
+  for (i = 0; i < panels.length; i++) {
+    if (panels[i].classList.contains("stage") || panels[i].classList.contains("mid")) flexAt = i;
+  }
+
+  var NARROW = panels.some(function (p) { return p.classList.contains("right"); }) ? 1100 : 1000;
+  var MIN = 200, MIN_DOC = 250, MAX = 1100;
+
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {}
+  }
+  function minOf(p) {
+    return (p.classList.contains("doc") || p.classList.contains("mid")) ? MIN_DOC : MIN;
+  }
+  function label(p) {
+    if (p.dataset && p.dataset.tg) return p.dataset.tg;
+    if (p.classList.contains("doc")) return "讲义";
+    if (p.classList.contains("side")) return "目录";
+    if (p.classList.contains("right")) return "笔记";
+    return "";
+  }
+  function setW(p, idx, px) {
+    p.style.flex = "0 0 " + px + "px";
+    p.style.width = px + "px";
+    st.w[page + idx] = Math.round(px);
+  }
+
+  /* ---------- 分栏条 ---------- */
+  var splits = [];
+  for (i = 0; i < panels.length - 1; i++) {
+    (function (k) {
+      var a = panels[k], b = panels[k + 1];
+      var sp = document.createElement("div");
+      sp.className = "split";
+      sp.title = "拖动调宽 · 双击复位";
+      sp.setAttribute("role", "separator");
+      sp.setAttribute("aria-orientation", "vertical");
+      grid.insertBefore(sp, b);
+      splits.push({ el: sp, a: a, b: b, k: k });
+
+      sp.addEventListener("pointerdown", function (ev) {
+        if (ev.button !== 0) return;
+        ev.preventDefault();
+        var ra = a.getBoundingClientRect().width,
+            rb = b.getBoundingClientRect().width,
+            x0 = ev.clientX,
+            flexA = k === flexAt,
+            flexB = k + 1 === flexAt,
+            minA = minOf(a), minB = minOf(b);
+        var mask = document.getElementById("dragmask");
+        if (!mask) {
+          mask = document.createElement("div");
+          mask.id = "dragmask";
+          mask.className = "dragmask";
+          document.body.appendChild(mask);
+        }
+        mask.hidden = false;
+        sp.classList.add("drag");
+        function move(e) {
+          var dx = e.clientX - x0, wa, wb;
+          if (flexA) {
+            wb = Math.max(minB, Math.min(MAX, rb - dx));
+            setW(b, k + 1, wb);
+          } else if (flexB) {
+            wa = Math.max(minA, Math.min(MAX, ra + dx));
+            setW(a, k, wa);
+          } else {
+            wa = Math.max(minA, Math.min(MAX, ra + dx));
+            wb = rb - (wa - ra);
+            if (wb < minB) { wb = minB; wa = ra + rb - wb; }
+            setW(a, k, wa); setW(b, k + 1, wb);
+          }
+        }
+        function up() {
+          mask.hidden = true;
+          sp.classList.remove("drag");
+          document.removeEventListener("pointermove", move);
+          document.removeEventListener("pointerup", up);
+          save();
+        }
+        document.addEventListener("pointermove", move);
+        document.addEventListener("pointerup", up);
+      });
+
+      sp.addEventListener("dblclick", function () {
+        [a, b].forEach(function (p) {
+          p.style.flex = ""; p.style.width = "";
+        });
+        delete st.w[page + k];
+        delete st.w[page + (k + 1)];
+        save();
+      });
+    })(i);
+  }
+
+  /* ---------- 收起按钮 ---------- */
+  var top = document.querySelector(".top");
+  if (!top) {
+    top = document.createElement("div");
+    top.className = "top";
+    document.body.insertBefore(top, document.body.firstChild);
+  }
+  var btns = [];
+  panels.forEach(function (p, idx) {
+    if (idx === flexAt) return;
+    var t = label(p);
+    if (!t) return;
+    var b = document.createElement("button");
+    b.className = "btn sm tg";
+    b.type = "button";
+    b.textContent = t;
+    b.title = "显示 / 收起「" + t + "」这一栏";
+    b.addEventListener("click", function () {
+      var hid = !p.hidden;
+      p.hidden = hid;
+      p.style.display = hid ? "none" : "";
+      st.h[page + idx] = hid;
+      save();
+      paint();
+    });
+    /* 插在顶栏靠右的位置：倒数第二个按钮前 */
+    var anchor = top.querySelector("#btn-read") || top.lastElementChild;
+    top.insertBefore(b, anchor);
+    btns.push({ b: b, p: p, idx: idx });
+  });
+
+  function paint() {
+    btns.forEach(function (o) {
+      o.b.classList.toggle("on", !o.p.hidden);
+      o.b.setAttribute("aria-pressed", o.p.hidden ? "false" : "true");
+    });
+    splits.forEach(function (s) {
+      s.el.hidden = s.a.hidden || s.b.hidden;
+    });
+  }
+
+  function layout() {
+    var wide = window.innerWidth >= NARROW;
+    panels.forEach(function (p, idx) {
+      if (idx === flexAt) return;
+      var w = st.w[page + idx];
+      if (wide && w) setW(p, idx, w);
+      else if (!wide) { p.style.flex = ""; p.style.width = ""; }
+    });
+    if (!wide) {
+      /* 窄屏回到单列，全部显示 */
+      panels.forEach(function (p) { if (p.hidden) { p.hidden = false; p.style.display = ""; } });
+    } else {
+      panels.forEach(function (p, idx) {
+        var h = st.h[page + idx];
+        if (h) { p.hidden = true; p.style.display = "none"; }
+      });
+    }
+    paint();
+  }
+
+  layout();
+  var rt;
+  window.addEventListener("resize", function () {
+    clearTimeout(rt);
+    rt = setTimeout(layout, 160);
+  });
+})();
+
 </script>
 </body>
 </html>
