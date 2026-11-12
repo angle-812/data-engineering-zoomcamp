@@ -200,6 +200,10 @@ code{font-family:var(--mono);font-size:.88em;background:var(--line-soft);
   .side{position:static;max-height:300px}
   .wrap{padding:14px 12px 40px}
 }
+  .frombar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    background:var(--blue-weak);border:1px solid var(--accent-line);border-radius:10px;
+    padding:8px 12px;margin:0 0 12px;font-size:12.8px;color:var(--text)}
+  .frombar a{margin-left:auto;font-weight:600;color:var(--blue)}
 </style>
 </head>
 <body>
@@ -218,6 +222,10 @@ code{font-family:var(--mono);font-size:.88em;background:var(--line-soft);
   <aside class="side" id="side" aria-label="目录"></aside>
 
   <section class="mid">
+    <div class="frombar" id="frombar" hidden>
+      <span id="fromtxt">从 DE 课程跳过来补这一节</span>
+      <a id="fromback" href="#">← 学完回到那一集</a>
+    </div>
     <div class="chead">
       <h1 id="h-title">—</h1>
       <div class="meta" id="h-meta"></div>
@@ -503,6 +511,21 @@ code{font-family:var(--mono);font-size:.88em;background:var(--line-soft);
     for (var k in done) if (done[k]) last = Math.max(last, +k);
     start = Math.min(last + 1, CHS.length) || 1;
   }
+  /* 从 DE 课程某集跳过来时，给一条「回去」的通道 */
+  (function () {
+    var bm = location.search.match(/[?&]back=([^&]+)/);
+    if (!bm) return;
+    var back = decodeURIComponent(bm[1]);
+    var tm2 = location.search.match(/[?&]bt=([^&]+)/);
+    var epTitle = tm2 ? decodeURIComponent(tm2[1]).replace(/\+/g, " ") : "";
+    var bar = document.getElementById("frombar");
+    document.getElementById("fromtxt").textContent =
+      "你从 DE 课程" + (epTitle ? "《" + epTitle + "》" : "") + "那一集跳过来补这节";
+    var a = document.getElementById("fromback");
+    a.href = "../" + back;
+    bar.hidden = false;
+  })();
+
   select(start, false);
 })();
 </script>
