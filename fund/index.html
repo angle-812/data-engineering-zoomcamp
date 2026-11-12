@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>基础预备 · 学 DE Zoomcamp 之前要补什么</title>
+<style>
+*{box-sizing:border-box}
+:root{
+  --bg:#f4f5f7; --card:#fff; --line:#e3e6ec; --line-soft:#eef0f4;
+  --text:#14171c; --muted:#657080; --muted-2:#8b94a2;
+  --accent:#0f766e; --accent-weak:#e6f4f2; --accent-line:#bfe3de;
+  --ok:#0f9d58; --ok-weak:#e8f7ef; --warn:#b45309; --warn-weak:#fff5e6;
+  --blue:#2563eb; --blue-weak:#eaf0ff;
+  --radius:14px; --shadow:0 1px 2px rgba(16,24,40,.05),0 8px 24px rgba(16,24,40,.05);
+  --mono:"Cascadia Mono",Consolas,"Courier New",monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0d1014; --card:#15191f; --line:#262c35; --line-soft:#1f252d;
+    --text:#e8ecf2; --muted:#98a2b0; --muted-2:#79838f;
+    --accent:#4fd1c5; --accent-weak:#122a28; --accent-line:#245049;
+    --ok:#43c78a; --ok-weak:#12291f; --warn:#ffb454; --warn-weak:#2a2117;
+    --blue:#74a3ff; --blue-weak:#182233;
+    --shadow:0 1px 2px rgba(0,0,0,.4);
+  }
+}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:15px/1.65 "Segoe UI","Microsoft YaHei",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+code{font-family:var(--mono);font-size:.88em;background:var(--line-soft);
+  padding:1px 5px;border-radius:4px;border:1px solid var(--line)}
+.top{position:sticky;top:0;z-index:30;display:flex;gap:10px;align-items:center;
+  padding:10px 16px;background:var(--card);border-bottom:1px solid var(--line);flex-wrap:wrap}
+.back{font-size:13px;color:var(--muted)}
+.ttl{font-weight:650;font-size:15.5px}
+.ttl .dim{color:var(--muted);font-weight:400}
+.grow{flex:1}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:9px;
+  border:1px solid var(--line);background:var(--card);color:var(--text);font:inherit;
+  font-size:13px;cursor:pointer;transition:.15s}
+.btn:hover{border-color:var(--accent-line);background:var(--accent-weak);text-decoration:none}
+.btn.sm{padding:4px 9px;font-size:12.5px}
+.btn.go{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.go:hover{filter:brightness(1.06);background:var(--accent)}
+.stats{font-size:13px;color:var(--muted);margin-left:4px}
+.stats b{color:var(--accent);font-size:15px}
+
+.grid{display:grid;grid-template-columns:268px minmax(0,1fr) 300px;gap:16px;
+  padding:16px;max-width:1840px;margin:0 auto;align-items:start}
+.side,.mid,.right{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow)}
+.side{position:sticky;top:66px;max-height:calc(100vh - 84px);overflow:auto;padding:10px}
+.mid{min-width:0;overflow:hidden;display:flex;flex-direction:column}
+.right{position:sticky;top:66px;max-height:calc(100vh - 84px);display:flex;flex-direction:column}
+
+.ptitle{display:flex;align-items:center;gap:8px;padding:9px 8px 5px;font-size:12px;
+  color:var(--muted);letter-spacing:.04em;user-select:none}
+.ptitle .pn{font-weight:700;color:var(--accent)}
+.ptitle .cnt{margin-left:auto;font-size:11px;color:var(--muted-2)}
+.ch{display:flex;gap:8px;align-items:flex-start;width:100%;padding:7px 9px;border:0;
+  background:none;border-radius:9px;cursor:pointer;text-align:left;color:inherit;
+  font:inherit;font-size:13.5px;line-height:1.45}
+.ch:hover{background:var(--line-soft)}
+.ch.cur{background:var(--accent-weak);box-shadow:inset 3px 0 0 var(--accent)}
+.ch.done .no{background:var(--ok);color:#fff;border-color:var(--ok)}
+.no{flex:0 0 22px;height:22px;border-radius:6px;border:1px solid var(--line);
+  display:grid;place-items:center;font:600 11px/1 var(--mono);color:var(--muted);margin-top:1px}
+.ch.cur .no{background:var(--accent);color:#fff;border-color:var(--accent)}
+.ct{flex:1;min-width:0}
+.ct .de{display:inline-block;margin-left:6px;font-size:10.5px;color:var(--blue);
+  background:var(--blue-weak);border:1px solid var(--line);border-radius:5px;padding:0 4px}
+
+.chead{padding:14px 18px 12px;border-bottom:1px solid var(--line-soft)}
+.chead h1{margin:0 0 4px;font-size:19px;font-weight:680}
+.chead .meta{font-size:12.5px;color:var(--muted);display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.chead .lead{font-size:13.5px;color:var(--muted);margin:8px 0 0}
+.tag{font-size:11.5px;padding:1px 7px;border-radius:6px;background:var(--accent-weak);
+  color:var(--accent);border:1px solid var(--accent-line)}
+
+/* ---------- 资源区 ---------- */
+.reswrap{padding:12px 16px 14px;background:var(--bg);border-bottom:1px solid var(--line-soft)}
+.reswrap .rh{font-size:11.5px;color:var(--muted-2);letter-spacing:.05em;margin-bottom:8px;
+  display:flex;align-items:center;gap:8px}
+.rgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:9px}
+.rcard{display:block;padding:9px 11px;border:1px solid var(--line);border-radius:10px;
+  background:var(--card);transition:.15s;color:inherit}
+.rcard:hover{border-color:var(--accent-line);box-shadow:0 2px 10px rgba(15,118,110,.08);
+  text-decoration:none;transform:translateY(-1px)}
+.rcard .rt{font-size:13px;font-weight:600;color:var(--accent);display:flex;gap:5px;align-items:center}
+.rcard .rt .arw{color:var(--muted-2);font-size:11px;font-weight:400}
+.rcard .rd{font-size:11.8px;color:var(--muted);margin-top:2px;line-height:1.45}
+.rsearch{padding:8px 16px;border-bottom:1px solid var(--line-soft);display:flex;gap:7px;
+  align-items:center;font-size:11.8px;color:var(--muted-2);flex-wrap:wrap}
+
+/* ---------- 标签 ---------- */
+.tabs{display:flex;gap:6px;padding:10px 14px 0;border-bottom:1px solid var(--line)}
+.tab{padding:7px 13px;border:1px solid transparent;border-bottom:0;border-radius:9px 9px 0 0;
+  background:none;color:var(--muted);font:inherit;font-size:13.5px;cursor:pointer}
+.tab.on{background:var(--card);border-color:var(--line);color:var(--text);font-weight:600;
+  box-shadow:0 -2px 0 var(--accent) inset}
+.pane{padding:16px 20px 28px;overflow:auto;max-height:calc(100vh - 420px);min-height:340px}
+.pane h3{font-size:14.5px;margin:20px 0 7px;color:var(--accent)}
+.pane h3:first-child{margin-top:0}
+.pane p{margin:0 0 11px;text-align:justify}
+.pane ul,.pane ol{margin:6px 0 12px;padding-left:1.4em}
+.pane li{margin:4px 0}
+.pane pre{font-family:var(--mono);font-size:12.7px;background:var(--line-soft);
+  border:1px solid var(--line);border-radius:8px;padding:10px 12px;overflow:auto;margin:9px 0;line-height:1.55}
+.pane table{margin:10px 0}
+.pane th{font-size:12.5px;color:var(--muted);font-weight:600}
+
+.cmd{border:1px solid var(--line);border-radius:11px;padding:11px 13px;margin-bottom:10px;
+  background:var(--card)}
+.cmd .k{font-family:var(--mono);font-weight:650;font-size:13.6px;color:var(--accent)}
+.cmd .d{font-size:13px;color:var(--muted);margin:3px 0 0}
+.cmd .ex{position:relative;margin-top:8px}
+.cmd .ex pre{margin:0;font-family:var(--mono);font-size:12.5px;background:var(--line-soft);
+  border:1px solid var(--line);border-radius:8px;padding:8px 44px 8px 10px;overflow:auto}
+.copy{position:absolute;top:5px;right:5px;border:1px solid var(--line);background:var(--card);
+  border-radius:6px;font-size:11px;padding:2px 7px;cursor:pointer;color:var(--muted)}
+.copy:hover{color:var(--accent);border-color:var(--accent-line)}
+.ex{border-left:3px solid var(--ok);padding:2px 0 2px 12px;margin-bottom:16px}
+.ex .t{font-weight:600;font-size:14px}
+.ex .note{font-size:12.5px;color:var(--muted);margin-top:4px}
+.ex .ex{margin-top:8px}
+
+.rhead{padding:12px 14px 8px;border-bottom:1px solid var(--line-soft);font-size:13px;
+  font-weight:600;display:flex;align-items:center;gap:8px}
+.note-box{flex:1;display:flex;flex-direction:column;min-height:0;padding:10px 12px}
+.note-box textarea{flex:1;min-height:150px;resize:vertical;border:1px solid var(--line);
+  border-radius:9px;padding:9px 11px;font:13px/1.6 var(--mono);background:var(--bg);color:var(--text)}
+.note-box textarea:focus{outline:2px solid var(--accent-line);outline-offset:1px}
+.nfoot{display:flex;gap:8px;font-size:11.5px;color:var(--muted-2);padding-top:6px}
+.info{padding:10px 14px 14px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line-soft)}
+.kv{display:flex;gap:6px;margin:3px 0}
+.kv .k{color:var(--muted-2);flex:0 0 52px}
+.kv .v{color:var(--text);font-size:12px;word-break:break-all}
+.mono{font-family:var(--mono);font-size:12.5px}
+
+/* ---------- 看板 ---------- */
+.wrap{max-width:1180px;margin:0 auto;padding:22px 22px 60px}
+.hero{background:var(--card);border:1px solid var(--line);border-radius:18px;
+  padding:22px 24px;box-shadow:var(--shadow);margin-bottom:18px}
+.hero h1{margin:0 0 6px;font-size:23px;font-weight:700;letter-spacing:-.01em}
+.hero .sub{color:var(--muted);font-size:13.8px;margin:0 0 14px}
+.bar{height:9px;background:var(--line-soft);border-radius:6px;overflow:hidden;margin:12px 0 7px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,#0f766e,#2dd4bf);width:0;transition:.4s}
+.pmeta{display:flex;gap:16px;font-size:12.8px;color:var(--muted);flex-wrap:wrap}
+.pmeta b{color:var(--text)}
+.part{background:var(--card);border:1px solid var(--line);border-radius:16px;
+  padding:16px 18px;margin-bottom:14px;box-shadow:var(--shadow)}
+.part .ph{display:flex;align-items:flex-start;gap:12px;margin-bottom:4px}
+.part .pn{font-size:12px;font-weight:700;color:var(--accent);background:var(--accent-weak);
+  border:1px solid var(--accent-line);border-radius:7px;padding:2px 8px;white-space:nowrap;margin-top:2px}
+.part h2{margin:0;font-size:16.5px;font-weight:680;flex:1}
+.part .pc{font-size:12.5px;color:var(--muted-2)}
+.part .lead{font-size:13px;color:var(--muted);margin:6px 0 12px}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:8px;
+  border:1px solid var(--line);background:var(--card);font-size:12.9px;color:var(--text);
+  transition:.13s;cursor:pointer}
+.chip:hover{border-color:var(--accent-line);background:var(--accent-weak);text-decoration:none}
+.chip.done{border-color:#bfe8d4;background:var(--ok-weak);color:var(--ok)}
+.chip .cn{font:600 10.5px/1 var(--mono);color:var(--muted-2)}
+.chip.done .cn{color:var(--ok)}
+.chip .cde{font-size:10px;color:var(--blue);background:var(--blue-weak);border-radius:4px;padding:0 4px}
+
+.quiz{background:var(--card);border:1px solid var(--line);border-radius:16px;
+  padding:18px 20px;margin-bottom:16px;box-shadow:var(--shadow)}
+.quiz h2{margin:0 0 4px;font-size:16.5px}
+.quiz .hint{font-size:13px;color:var(--muted);margin:0 0 14px}
+.qitem{display:flex;gap:9px;align-items:flex-start;padding:7px 9px;border-radius:8px;
+  font-size:13.3px;cursor:pointer;line-height:1.5}
+.qitem:hover{background:var(--line-soft)}
+.qitem input{margin-top:4px;flex:0 0 auto;accent-color:var(--accent);width:15px;height:15px}
+.qitem.on{color:var(--muted)}
+.qres{margin-top:14px;padding:12px 14px;border-radius:10px;background:var(--accent-weak);
+  border:1px solid var(--accent-line);font-size:13.3px;line-height:1.6}
+.qres b{color:var(--accent)}
+.qres .sk{font-family:var(--mono);font-size:12.5px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:860px){.two{grid-template-columns:1fr}}
+.card2{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;
+  box-shadow:var(--shadow)}
+.card2 h3{margin:0 0 8px;font-size:14.5px}
+.card2 table{width:100%;border-collapse:collapse;font-size:13px}
+.card2 td{padding:5px 4px;border-bottom:1px solid var(--line-soft);vertical-align:top}
+.card2 td:first-child{color:var(--muted);white-space:nowrap;padding-right:10px}
+
+@media (max-width:1500px){.grid{grid-template-columns:244px minmax(0,1fr) 272px}}
+@media (max-width:1220px){
+  .grid{grid-template-columns:236px minmax(0,1fr)}
+  .right{grid-column:1 / -1;position:static;max-height:none}
+  .pane{max-height:none}
+}
+@media (max-width:880px){
+  .grid{grid-template-columns:1fr;padding:10px}
+  .side{position:static;max-height:300px}
+  .wrap{padding:14px 12px 40px}
+}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <a class="back" href="../hub.html">← 总台</a>
+  <div class="ttl">基础预备 <span class="dim">· 32 节</span></div>
+  <div class="grow"></div>
+  <a class="btn sm" href="player.html">▶ 开始学习</a>
+  <a class="btn sm" href="../index.html">DE 看板</a>
+  <a class="btn sm" href="../player.html">DE 学习台</a>
+  <a class="btn sm" href="../linux/index.html">Linux 体系</a>
+</div>
+
+<div class="wrap">
+
+  <div class="hero">
+    <h1>学 DE Zoomcamp 之前，该补的 32 节</h1>
+    <p class="sub">官方只要求四件：命令行、编程基础、Python、SQL。你已经有两个（Python、MySQL），
+      所以这套不是「从零学编程」，而是补中间那段——从「会写语法」到「能处理一批真实数据」。</p>
+    <div class="bar"><i id="bar-all"></i></div>
+    <div class="pmeta">
+      <span><b id="st-done">0</b> / <span id="st-total">32</span> 节完成</span>
+      <span>四块 · <b id="n-cards">0</b> 张知识卡</span>
+      <span>预计 <b>10–14 天</b>（每天 1–2 小时）</span>
+    </div>
+  </div>
+
+  <div class="quiz">
+    <h2>先花两分钟自测：这 12 条你会几条</h2>
+    <p class="hint">勾上「我已经会了」的。下面会直接告诉你哪几块可以跳过、哪几块必须补。</p>
+    <div id="qlist"></div>
+    <div class="qres" id="qres">还没勾选。勾几条看看结论。</div>
+  </div>
+
+  <div id="parts"></div>
+
+  <div class="two" style="margin-top:18px">
+    <div class="card2">
+      <h3>官方要求 vs 你的现状</h3>
+      <table>
+        <tr><td>命令行基础</td><td>你有 Linux 虚拟机 + 独立的 Linux 体系，这块正在补</td></tr>
+        <tr><td>编程基础</td><td>✅ 已有</td></tr>
+        <tr><td>Python</td><td>✅ 有基础；缺的是文件/接口/pandas 这一段（第一块）</td></tr>
+        <tr><td>SQL 基础</td><td>✅ 有 MySQL；缺窗口函数、CTE、执行计划（第二块）</td></tr>
+        <tr><td>Git</td><td>会用 GitHub Desktop，命令行要熟（第 19 节）</td></tr>
+        <tr><td>Docker / Terraform</td><td>没用过，模块 1 第一天就要用（第 20–21 节）</td></tr>
+        <tr><td>GCP 账号</td><td>还没建，模块 1 之前要准备好（第 31 节）</td></tr>
+      </table>
+    </div>
+    <div class="card2">
+      <h3>建议的节奏</h3>
+      <table>
+        <tr><td>Day 1–3</td><td>第一块 · 编程与数据操作（8 节）</td></tr>
+        <tr><td>Day 4–7</td><td>第二块 · SQL 进阶（10 节）—— 你有底子，会快</td></tr>
+        <tr><td>Day 8–10</td><td>第三块 · 工具链（6 节），边装边练</td></tr>
+        <tr><td>Day 11–14</td><td>第四块 · 核心概念（8 节），通读建立词汇</td></tr>
+        <tr><td>之后</td><td>进 DE 课程模块 1；遇到不会的再回来查对应节</td></tr>
+      </table>
+      <p style="font-size:12.8px;color:var(--muted);margin:10px 0 0">
+        不用全部 100% 掌握才开课。<b>能在虚拟机上跑通、能看懂报错</b>就够了，剩下的在项目里补。</p>
+    </div>
+  </div>
+
+</div>
+
+<script>var DATA = {"chapters":[{"no":1,"p":1,"t":"虚拟环境与包管理","lead":"你写的第一行 import requests 大概就会报 ModuleNotFoundError。虚拟环境是让每个项目的依赖互不打架的隔离盒，也是课程作业能跑起来的前提。","de":["01"]},{"no":2,"p":1,"t":"文件、路径与编码","lead":"数据工程的日常有一半是读写文件。编码错误和路径拼接是最常见的两个报错源，用对工具能少踩一半。","de":["01"]},{"no":3,"p":1,"t":"异常处理与日志","lead":"数据管道会失败，这不是意外，是常态。能不能一眼看出「哪个文件、第几行、什么原因」，决定了你排查要花 5 分钟还是 2 小时。","de":["01","06"]},{"no":4,"p":1,"t":"调 API：requests 与分页","lead":"课程里的数据大多来自 HTTP 接口。这一节只讲你实际会用到的那几件：超时、状态码、分页、鉴权、限流。","de":["01","05"]},{"no":5,"p":1,"t":"数据格式：CSV / JSON / Parquet","lead":"三种格式覆盖了 95% 的场景。选错格式，后面每一步都慢；理解它们各自的脾气，能省掉大量莫名其妙的 bug。","de":["01","03"]},{"no":6,"p":1,"t":"pandas 入门：从表格到结论","lead":"pandas 是你和 Spark 之间最好的过渡：DataFrame 这套思维先在单机练熟，之后换 Spark 只是换 API。这一节只学 20% 覆盖 80% 场景的操作。","de":["06"]},{"no":7,"p":1,"t":"pandas 进阶：连接、透视与内存","lead":"真实数据永远是多张表、多种粒度。merge 写错会悄悄把行数翻倍，这是最隐蔽的数据事故。","de":["06"]},{"no":8,"p":1,"t":"把脚本写成人能维护的样子","lead":"作业交上去的不是「能跑一次」的代码，而是「别人 clone 下来能跑」的工程。差别就在这几件小事上。","de":["01","02"]},{"no":9,"p":2,"t":"OLTP 与 OLAP：两种 SQL 的差别","lead":"你练 MySQL 时写的多是「查一个用户、改一条订单」，那是 OLTP。数据工程里写的是「扫十亿行、按天汇总」，那是 OLAP。同一个 SQL 语言，两套优化思路。","de":["03"]},{"no":10,"p":2,"t":"JOIN 全解与三个经典陷阱","lead":"JOIN 谁都会写，写对的人不多。三个坑：条件放错位置、一对多膨胀、NULL 让连接静默丢数据。","de":["03","04"]},{"no":11,"p":2,"t":"聚合与 GROUP BY 的完整语义","lead":"GROUP BY 有个容易忽略的规则：SELECT 里的非聚合列必须出现在 GROUP BY 里。理解为什么，才能写出不报错也不出错的 SQL。","de":["03","04"]},{"no":12,"p":2,"t":"子查询与 CTE：把复杂 SQL 拆开","lead":"一段 200 行的 SQL 没人愿意改。CTE（WITH 子句）就是 SQL 里的函数拆分，是 dbt 模型的骨架写法。","de":["04"]},{"no":13,"p":2,"t":"窗口函数：分析型 SQL 的分水岭","lead":"会窗口函数，SQL 水平就跨过一道线。它能在不折叠行的情况下做排名、累计、环比、取每组最新一条——这些用 GROUP BY 根本做不到。","de":["03","04","06"]},{"no":14,"p":2,"t":"NULL 与三值逻辑：最阴的坑","lead":"SQL 里 NULL 不是「空字符串」，是「不知道」。所以 NULL = NULL 的结果是 NULL（不知道），不是 TRUE。这一条能解释很多「查出来是空的但数据明明在」。","de":["03"]},{"no":15,"p":2,"t":"索引与执行计划","lead":"在 MySQL 里你大概听说过「加索引」。在分析型场景里规则变了：全表扫十亿行是常态，真正要管的是分区裁剪和扫描量。但看执行计划的习惯要现在养成。","de":["03"]},{"no":16,"p":2,"t":"建表、写入与事务","lead":"数据工程的一半工作是「把数据安全地写进去」。upsert、事务、约束这三件，决定了你的管道能不能重跑。","de":["01","03"]},{"no":17,"p":2,"t":"日期时间与时区","lead":"「昨天的数据」到底是哪个时区的昨天？这个问题能毁掉整张日报。数据工程里时间是第一大 bug 来源。","de":["01","03"]},{"no":18,"p":2,"t":"用 SQL 做数据质量体检","lead":"在写任何管道之前，先花十分钟把这七个检查跑一遍。你对数据的了解程度，决定了后面所有决策的质量。","de":["03","04"]},{"no":19,"p":3,"t":"Git 最小可用集","lead":"你已经有 GitHub Desktop 了，这节讲它背后到底在做什么。命令行的价值在于：报错时你能看懂，卡住时你能恢复。","de":["00","01"]},{"no":20,"p":3,"t":"Docker 心智模型","lead":"「在我机器上能跑」是数据工程最经典的灾难。Docker 把「代码 + 依赖 + 系统库」打包成一个整体，让环境随代码走。","de":["01"]},{"no":21,"p":3,"t":"Dockerfile 与 Compose","lead":"课程作业要求「别人 clone 下来能一键跑起来」。Dockerfile 打包你的应用，compose 编排多个服务——这套组合是交作业的标准形态。","de":["01"]},{"no":22,"p":3,"t":"命令行里的数据活","lead":"有些活不值得写脚本：看一眼文件多少行、把 JSON 里某个字段全提出来、统计某天的错误有多少。管道 + 几个小工具，一条命令就完。","de":["01","06"]},{"no":23,"p":3,"t":"YAML 与配置文件","lead":"Docker Compose、Kestra、dbt、GitHub Actions、Terraform 的配置全是 YAML。它语法只有几条，但缩进错一个空格就整份文件失效。","de":["01","02","04"]},{"no":24,"p":3,"t":"VS Code、Jupyter 与调试","lead":"工具顺手，效率差一倍。这一节把三个高频动作配好：断点调试代替 print、notebook 探索、notebook 转成可调度的脚本。","de":["00"]},{"no":25,"p":4,"t":"数据工程到底在干什么","lead":"一句话：把分散在各处的数据，可靠地搬到能用的地方，并保证它是对的。这一节把整条链路和术语先过一遍，之后看课程每一模块就知道自己在哪一环。","de":["00"]},{"no":26,"p":4,"t":"数据建模：从三范式到星型","lead":"你在 MySQL 里学的规范化是为了「不重复、不出错」；分析场景要的是「查得快、看得懂」。两套目标不同，所以建模方式也不同。","de":["04"]},{"no":27,"p":4,"t":"分层：为什么数据要分好几层","lead":"直接把源库数据喂给报表，看着省事，实际上三个月后没人说得清一个指标是怎么算出来的。分层的价值就一句话：每一层只做一件事，出错时能定位。","de":["03","04","05"]},{"no":28,"p":4,"t":"分区、文件布局与列式存储","lead":"同样是 1TB 数据，布局方式不同，查询可能差 100 倍、账单差 100 倍。这一节解释「为什么快」以及「怎么摆」。","de":["03","06"]},{"no":29,"p":4,"t":"幂等、增量与重跑","lead":"管道一定会失败，一定会重跑。判断一个数据工程师水平，看他写的管道重跑三次之后数据还对不对。","de":["02","06"]},{"no":30,"p":4,"t":"数据质量与数据契约","lead":"「数据不对」比「数据没有」更可怕——没人会立刻发现，但所有决策都错了。质量要靠机制，不能靠人盯着。","de":["04"]},{"no":31,"p":4,"t":"云、成本与权限","lead":"课程用 GCP。你不用成为云专家，但必须会三件事：开项目、控成本、给权限。搞错任何一件，要么欠费，要么卡在 403。","de":["01","03"]},{"no":32,"p":4,"t":"编排与调度","lead":"脚本能跑不等于管道能跑。谁来每天 6 点触发它？失败了谁知道？跑了三小时卡住怎么办？这就是编排器要解决的事。","de":["02"]}],"parts":{"1":["第一块","编程与数据操作","把 Python 从「会写语法」推到「能处理一批数据」。这一块不学新语言，学的是文件、接口、日志、表格这些真活儿。"],"2":["第二块","SQL 进阶","你有 MySQL 基础，缺的是分析型写法：窗口函数、CTE、执行计划，还有 NULL 和时区这两个坑。"],"3":["第三块","工程工具链","Git、Docker、命令行、配置文件——课程第一天就要用，卡在这里会一直卡。"],"4":["第四块","数据工程概念","工具天天换，概念不变。先建立数据流、建模、分层、幂等这套词汇，看视频才不会懵。"]},"de":{"00":"课程总览与环境","01":"Docker 与 Terraform","02":"工作流编排","03":"数据仓库","04":"分析工程","05":"数据平台","06":"批处理","07":"流处理"},"ncards":181,"quiz":[{"id":"q1","t":"我能用 venv 建虚拟环境，并用 requirements.txt 复现一套依赖","p":1},{"id":"q2","t":"我能用 requests 调接口，处理分页、超时和 429","p":1},{"id":"q3","t":"我用 pandas 读过 CSV，做过筛选、新列、groupby 聚合","p":1},{"id":"q4","t":"我知道 merge 会让行数膨胀，会先检查连接键是否唯一","p":1},{"id":"q5","t":"我写过窗口函数（row_number / lag / sum over）","p":2},{"id":"q6","t":"我知道 NOT IN 的子查询里有 NULL 会一行都查不出","p":2},{"id":"q7","t":"我看过 EXPLAIN，知道 type=ALL 是全表扫描","p":2},{"id":"q8","t":"我知道金额要用 NUMERIC 而不是 FLOAT，时间要存 UTC","p":2},{"id":"q9","t":"我能独立完成 clone → 改 → commit → push 一整轮","p":3},{"id":"q10","t":"我跑过 docker run，并且理解 volume 和端口映射","p":3},{"id":"q11","t":"我知道 ODS / DWD / DWS / ADS 各做什么","p":4},{"id":"q12","t":"我能解释「幂等」，并写出重跑三次结果不变的写入","p":4}]};</script>
+<script>
+(function () {
+  "use strict";
+  var CHS = DATA.chapters, QUIZ = DATA.quiz;
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) {
+    return String(s).replace(/[&<>"]/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+    });
+  };
+
+  var done = {};
+  try { done = JSON.parse(localStorage.getItem("fund.done.v1") || "{}"); } catch (e) {}
+  var checked = {};
+  try { checked = JSON.parse(localStorage.getItem("fund.quiz.v1") || "{}"); } catch (e) {}
+  var saveChecked = function () { try { localStorage.setItem("fund.quiz.v1", JSON.stringify(checked)); } catch (e) {} };
+
+  var PARTNAME = {};
+  for (var k in DATA.parts) PARTNAME[k] = DATA.parts[k][1];
+
+  /* ---------- 进度 ---------- */
+  var nDone = Object.keys(done).filter(function (x) { return done[x]; }).length;
+  $("st-done").textContent = nDone;
+  $("st-total").textContent = CHS.length;
+  $("n-cards").textContent = DATA.ncards || 0;
+  $("bar-all").style.width = (nDone / CHS.length * 100) + "%";
+
+  /* ---------- 四块 ---------- */
+  var html = "";
+  [1, 2, 3, 4].forEach(function (p) {
+    var pi = DATA.parts[String(p)] || ["", "", ""];
+    var list = CHS.filter(function (c) { return c.p === p; });
+    var d = list.filter(function (c) { return done[c.no]; }).length;
+    html += '<div class="part"><div class="ph">' +
+      '<span class="pn">' + esc(pi[0]) + '</span>' +
+      '<h2>' + esc(pi[1]) + '</h2>' +
+      '<span class="pc">' + d + "/" + list.length + '</span></div>' +
+      '<p class="lead">' + esc(pi[2]) + '</p><div class="chips">';
+    list.forEach(function (c) {
+      html += '<a class="chip' + (done[c.no] ? " done" : "") + '" href="player.html?n=' + c.no + '">' +
+        '<span class="cn">' + (c.no < 10 ? "0" + c.no : c.no) + '</span>' +
+        '<span>' + esc(c.t) + '</span>' +
+        (c.de && c.de.length ? '<span class="cde">DE ' + esc(c.de[0]) + '</span>' : "") +
+        '</a>';
+    });
+    html += '</div></div>';
+  });
+  $("parts").innerHTML = html;
+
+  /* ---------- 自测 ---------- */
+  var qh = "";
+  QUIZ.forEach(function (q) {
+    qh += '<div class="qitem' + (checked[q.id] ? " on" : "") + '" data-q="' + q.id + '">' +
+      '<input type="checkbox" data-qid="' + q.id + '"' + (checked[q.id] ? " checked" : "") + '>' +
+      '<span>' + esc(q.t) + '</span></div>';
+  });
+  $("qlist").innerHTML = qh;
+
+  function judge() {
+    var byP = { 1: [0, 0], 2: [0, 0], 3: [0, 0], 4: [0, 0] };
+    var total = 0;
+    QUIZ.forEach(function (q) {
+      byP[q.p][1]++;
+      if (checked[q.id]) { byP[q.p][0]++; total++; }
+    });
+    if (total === 0) {
+      $("qres").innerHTML = "还没勾选。勾几条看看结论。";
+      return;
+    }
+    var skip = [], go = [], pick = [];
+    [1, 2, 3, 4].forEach(function (p) {
+      var r = byP[p][0] / byP[p][1];
+      if (r >= 0.75) skip.push(p); else if (r >= 0.5) pick.push(p); else go.push(p);
+    });
+    var range = { 1: [1, 8], 2: [9, 18], 3: [19, 24], 4: [25, 32] };
+    var lines = [];
+    if (skip.length) {
+      lines.push("可以快进：<b>" + skip.map(function (p) { return PARTNAME[p]; }).join("、") +
+        "</b> —— 直接翻知识卡，讲义跳着看。");
+    }
+    if (pick.length) {
+      lines.push("挑着补：<b>" + pick.map(function (p) { return PARTNAME[p]; }).join("、") +
+        "</b> —— 重点看讲义里的「坑」和练习，会的跳过。");
+    }
+    if (go.length) {
+      lines.push("完整走：<b>" + go.map(function (p) { return PARTNAME[p]; }).join("、") +
+        "</b> —— 从第 " + range[go[0]][0] + " 节开始，按顺序。");
+    }
+    var advice;
+    if (total >= 10) advice = "你已经够开课了。剩下的边做边查，不必等全部学完。";
+    else if (total >= 6) advice = "大约 5–7 天能补齐，补完第二块就可以开模块 1。";
+    else advice = "建议留两周，先把前两块走完再进课程，否则模块 1 会一直卡在环境和 SQL 上。";
+    var startNo = go.length ? range[go[0]][0] : 1;
+    $("qres").innerHTML = "你会了 <b>" + total + " / " + QUIZ.length + "</b> 条。" +
+      lines.map(function (l) { return "<div style='margin-top:6px'>· " + l + "</div>"; }).join("") +
+      "<div style='margin-top:8px'>" + advice +
+      " <a class='sk' href='player.html?n=" + startNo + "'>从第 " + startNo + " 节开始 →</a></div>";
+  }
+  judge();
+
+  document.addEventListener("change", function (ev) {
+    var t = ev.target;
+    if (t && t.getAttribute("data-qid")) {
+      var id = t.getAttribute("data-qid");
+      checked[id] = t.checked;
+      saveChecked();
+      var lb = t.closest(".qitem");
+      if (lb) lb.classList.toggle("on", t.checked);
+      judge();
+    }
+  });
+
+  document.addEventListener("click", function (ev) {
+    var lb = ev.target.closest(".qitem");
+    if (lb && ev.target.tagName !== "INPUT") {
+      var box = lb.querySelector("input");
+      box.checked = !box.checked;
+      box.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+  });
+})();
+</script>
+</body>
+</html>
