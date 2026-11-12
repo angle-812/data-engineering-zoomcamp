@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>知识树 · 干是课程，枝是基础，叶是知识点</title>
+<style>
+*{box-sizing:border-box}
+:root{
+  --bg:#f4f5f7; --card:#fff; --line:#e3e6ec; --line-soft:#eef0f4;
+  --text:#14171c; --muted:#657080; --muted-2:#8b94a2;
+  --accent:#0f766e; --accent-weak:#e6f4f2; --accent-line:#bfe3de;
+  --ok:#0f9d58; --ok-weak:#e8f7ef; --warn:#b45309; --warn-weak:#fff5e6;
+  --blue:#2563eb; --blue-weak:#eaf0ff;
+  --trunk:#0f766e; --trunk-line:#ccd4de; --branch:#2563eb; --leaf:#0f9d58;
+  --radius:14px; --shadow:0 1px 2px rgba(16,24,40,.05),0 8px 24px rgba(16,24,40,.05);
+  --mono:"Cascadia Mono",Consolas,"Courier New",monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0d1014; --card:#15191f; --line:#262c35; --line-soft:#1f252d;
+    --text:#e8ecf2; --muted:#98a2b0; --muted-2:#79838f;
+    --accent:#4fd1c5; --accent-weak:#122a28; --accent-line:#245049;
+    --ok:#43c78a; --ok-weak:#12291f; --warn:#ffb454; --warn-weak:#2a2117;
+    --blue:#74a3ff; --blue-weak:#182233;
+    --trunk:#4fd1c5; --trunk-line:#3b4552; --branch:#74a3ff; --leaf:#43c78a;
+    --shadow:0 1px 2px rgba(0,0,0,.4);
+  }
+}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:15px/1.65 "Segoe UI","Microsoft YaHei",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+a:hover{text-decoration:none}
+code{font-family:var(--mono);font-size:.88em;background:var(--line-soft);
+  padding:1px 5px;border-radius:4px;border:1px solid var(--line)}
+
+.top{position:sticky;top:0;z-index:30;display:flex;gap:9px;align-items:center;
+  padding:10px 16px;background:var(--card);border-bottom:1px solid var(--line);flex-wrap:wrap}
+.back{font-size:13px;color:var(--muted);border:1px solid var(--line);
+  padding:5px 11px;border-radius:8px;white-space:nowrap}
+.back:hover{color:var(--accent);border-color:var(--accent-line)}
+.ttl{font-weight:650;font-size:15px}
+.ttl .dim{color:var(--muted);font-weight:400;font-size:13px}
+.grow{flex:1}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:9px;
+  border:1px solid var(--line);background:var(--card);color:var(--text);font:inherit;
+  font-size:12.5px;cursor:pointer;transition:.15s}
+.btn:hover{border-color:var(--accent-line);background:var(--accent-weak)}
+.btn.sm{padding:4px 9px;font-size:12px}
+.btn.on{border-color:var(--accent-line);background:var(--accent-weak);color:var(--accent);font-weight:600}
+.stat{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.stat b{color:var(--accent);font-size:14px}
+.stat .dotsep{opacity:.4;margin:0 5px}
+
+.wrap{max-width:1120px;margin:0 auto;padding:16px 18px 90px}
+.legend{display:flex;gap:16px;flex-wrap:wrap;align-items:center;
+  background:var(--card);border:1px solid var(--line);border-radius:12px;
+  padding:11px 14px;margin-bottom:6px;font-size:12.6px;color:var(--muted)}
+.legend b{color:var(--text);font-weight:600}
+.legend i{display:inline-block;vertical-align:-1px;margin-right:6px}
+.legend .i-trunk{width:5px;height:14px;border-radius:2px;background:var(--trunk)}
+.legend .i-branch{width:14px;height:3px;border-radius:2px;background:var(--branch)}
+.legend .i-leaf{width:8px;height:8px;border-radius:50%;background:var(--leaf)}
+.legend .tip{margin-left:auto;font-size:12px;color:var(--muted-2);display:flex;gap:7px;align-items:center}
+.legend input{padding:5px 9px;border-radius:8px;border:1px solid var(--line);
+  background:var(--bg);color:var(--text);font:inherit;font-size:12.5px;width:160px}
+.legend input:focus{outline:none;border-color:var(--accent-line)}
+
+.tree{position:relative;padding-top:14px}
+.trunk{position:absolute;left:28px;top:10px;bottom:60px;width:5px;border-radius:4px;
+  background:var(--trunk-line);overflow:hidden;opacity:.9}
+.trunkfill{position:absolute;left:0;top:0;width:100%;border-radius:3px;height:0;
+  background:linear-gradient(180deg,var(--trunk),color-mix(in srgb,var(--trunk) 55%,transparent));
+  transition:height .5s ease}
+.cap{display:grid;grid-template-columns:76px minmax(0,1fr);align-items:center;
+  font-size:12.4px;color:var(--muted);margin:2px 0 10px}
+.cap i{grid-column:1;justify-self:start;margin-left:25px;width:10px;height:10px;
+  border-radius:50%;border:2px solid var(--accent);background:var(--card)}
+.cap span{grid-column:2}
+.cap.bottom{margin:16px 0 0}
+
+.mod{position:relative}
+.mrow{display:grid;grid-template-columns:76px minmax(0,1fr);align-items:flex-start;
+  margin:24px 0 8px;cursor:pointer;user-select:none}
+.mrow:first-of-type{margin-top:6px}
+.mnode{grid-column:1;justify-self:start;margin-left:11px;width:38px;height:38px;border-radius:50%;
+  display:grid;place-items:center;font:700 12px var(--mono);
+  background:var(--accent);color:#fff;box-shadow:0 0 0 4px var(--bg),0 2px 8px rgba(0,0,0,.16);
+  position:relative;z-index:2}
+@media (prefers-color-scheme:dark){.mnode{color:#06231f}}
+.mbody{grid-column:2;min-width:0;padding-top:1px}
+.mbody h2{margin:0;font-size:16px;letter-spacing:-.01em;display:flex;gap:8px;
+  align-items:baseline;flex-wrap:wrap}
+.mbody h2 em{flex:none;white-space:nowrap;font-style:normal;font:700 11px var(--mono);color:var(--accent);
+  background:var(--accent-weak);border:1px solid var(--accent-line);padding:2px 6px;border-radius:5px}
+.mbody p{margin:2px 0 0;font-size:12.6px;color:var(--muted);line-height:1.55}
+.mbody .fold{flex:none;white-space:nowrap;font-size:12px;color:var(--muted-2);
+  margin-left:2px;transition:transform .2s}
+.mbody .fold::after{content:"▾ 折叠这段"}
+.mod.closed .eps{display:none}
+.mod.closed .mbody .fold::after{content:"▸ 展开这段"}
+.mrow:hover .fold{color:var(--accent)}
+
+.eps{display:block}
+.node{display:grid;grid-template-columns:76px minmax(0,1fr);align-items:start;
+  position:relative;padding:9px 0 10px}
+.node[hidden]{display:none}
+.rail{grid-column:1;position:relative;align-self:stretch}
+.dot{position:absolute;left:23px;top:18px;width:14px;height:14px;border-radius:50%;
+  background:var(--card);border:2px solid var(--trunk-line);z-index:2;
+  box-shadow:0 0 0 3px var(--bg)}
+.node.done .dot{background:var(--ok);border-color:var(--ok)}
+.node:hover .dot{border-color:var(--accent)}
+.body{grid-column:2;min-width:0}
+.ehead{display:flex;gap:9px;align-items:baseline;flex-wrap:wrap}
+.et{font-size:14.6px;font-weight:600;letter-spacing:-.01em;line-height:1.4;
+  display:inline-flex;gap:8px;align-items:baseline;min-width:0}
+.et:hover{color:var(--accent)}
+.et .no{font:700 11px var(--mono);color:var(--muted);background:var(--line-soft);
+  border:1px solid var(--line);border-radius:5px;padding:2px 5px;flex:none}
+.node.done .et .no{color:var(--ok);border-color:var(--ok);background:var(--ok-weak)}
+.est{font-size:11.5px;color:var(--muted-2);white-space:nowrap}
+.node.done .est{color:var(--ok)}
+.ed{margin:3px 0 0;font-size:12.8px;color:var(--muted);line-height:1.6;max-width:74ch}
+
+/* 树枝 */
+.branch{margin:9px 0 2px}
+.bh{font-size:11.5px;letter-spacing:.03em;color:var(--muted);margin:0 0 6px 2px;
+  display:flex;align-items:center;gap:6px}
+.bh::before{content:"";width:12px;height:2px;border-radius:2px;
+  background:color-mix(in srgb,var(--branch) 55%,transparent)}
+.bitems{display:flex;flex-direction:column;gap:2px}
+.bitem{position:relative;margin-left:-44px;padding:5px 0 3px 14px}
+.bitem::before{content:"";position:absolute;left:-2px;top:18px;width:46px;height:2px;
+  border-radius:2px;background:color-mix(in srgb,var(--branch) 58%,transparent)}
+.bitem::after{content:"";position:absolute;left:6px;top:12px;width:9px;height:9px;
+  border-radius:50%;background:var(--card);border:2px solid var(--branch)}
+.bitem[hidden]{display:none}
+.bs{display:inline-flex;align-items:center;gap:9px;max-width:100%;
+  padding:6px 11px 6px 8px;border:1px solid var(--line);background:var(--card);
+  border-radius:9px;font-size:13px;line-height:1.35;transition:.15s}
+.bs:hover{border-color:var(--branch);background:var(--blue-weak)}
+.bs .bno{font:700 10.5px var(--mono);color:var(--branch);
+  background:color-mix(in srgb,var(--branch) 12%,transparent);
+  border-radius:5px;padding:3px 5px;flex:none}
+.bs .bn{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bs .bx{margin-left:auto;font-size:11.5px;color:var(--muted-2);white-space:nowrap;padding-left:10px}
+.bitem.done .bs .bno{color:var(--ok);background:var(--ok-weak)}
+.bitem.done .bs .bx{color:var(--ok)}
+
+.leaves{display:flex;flex-wrap:wrap;gap:5px;margin:6px 0 0 0}
+.leaf{display:inline-flex;align-items:center;gap:6px;max-width:100%;
+  padding:3px 10px 3px 8px;border-radius:999px;border:1px solid var(--line);
+  background:var(--bg);font-size:12px;color:var(--muted);line-height:1.5;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.leaf i{flex:none;width:6px;height:6px;border-radius:50%;background:var(--leaf);opacity:.8}
+.leaf:hover{border-color:var(--leaf);color:var(--text);background:var(--ok-weak)}
+body.no-leaves .leaves{display:none}
+body.no-leaves .bitem{padding-bottom:5px}
+
+.endcard{margin:34px 0 0;border:1px dashed var(--line);border-radius:12px;
+  padding:14px 16px;font-size:13px;color:var(--muted);background:var(--card)}
+.endcard b{color:var(--text)}
+.endcard .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+@media (max-width:700px){
+  .wrap{padding:12px 12px 70px}
+  .node,.mrow,.cap{grid-template-columns:52px minmax(0,1fr)}
+  .trunk{left:12px}
+  .dot{left:5px}
+  .mnode{width:30px;height:30px;font-size:10.5px;justify-self:start;margin-left:2px}
+  .bitem{margin-left:-30px;padding-left:12px}
+  .bitem::before{left:8px;width:24px}
+  .bitem::after{left:14px}
+  .legend .tip{display:none}
+}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <a class="back" href="hub.html">← 总台</a>
+  <div class="ttl">知识树 <span class="dim">干 · 枝 · 叶</span></div>
+  <div class="grow"></div>
+  <div class="stat" id="stat">—</div>
+  <a class="btn sm" href="player.html">DE 学习台</a>
+  <a class="btn sm" href="fund/index.html">基础预备</a>
+</div>
+
+<div class="wrap">
+  <div class="legend">
+    <span><i class="i-trunk"></i><b>树干</b> = DE 63 集</span>
+    <span><i class="i-branch"></i><b>树枝</b> = 卡住时要补的基础节</span>
+    <span><i class="i-leaf"></i><b>树叶</b> = 一节里的一个知识点</span>
+    <span class="tip">
+      <input type="search" id="q" placeholder="搜课程 / 知识点">
+    </span>
+  </div>
+
+  <div class="tree" id="tree">
+    <div class="trunk"><div class="trunkfill" id="trunkfill"></div></div>
+    <div class="cap top"><i></i><span>树顶 · 从模块 01 开始，沿着干往下走</span></div>
+    <div id="nodes"><div style="padding:24px 0;color:var(--muted)">正在长树…</div></div>
+    <div class="cap bottom"><i style="border-color:var(--leaf)"></i><span>树底 · 63 集走完，基础也就扎牢了</span></div>
+  </div>
+
+  <div class="endcard">
+    <b>怎么用这棵树：</b>沿着树干走，哪一集卡住了，就看它旁边长出来的树枝——那是这一集真正需要的底子；
+    树枝上的叶子，是一节里的具体知识点，点开直接落到那张卡。
+    <div class="acts">
+      <a class="btn sm" href="bridge.html">按模块看要补哪几节</a>
+      <a class="btn sm" href="fund/index.html">基础预备看板</a>
+      <a class="btn sm" href="player.html">回到学习台</a>
+    </div>
+  </div>
+</div>
+
+<script>var DATA = {"mods":[{"id":"01","title":"Containerization and Infrastructure as Code","sub":"Run data pipelines and PostgreSQL in Docker, then provision cloud infrastructure with Te…"},{"id":"02","title":"Workflow Orchestration","sub":"Build scheduled ETL and ELT workflows with Kestra, including backfills and cloud deploym…"},{"id":"03","title":"Data Warehousing","sub":"Query and optimize analytical data in BigQuery with partitioning, clustering, and built-…"},{"id":"04","title":"Analytics Engineering","sub":"Transform, test, and document warehouse models with dbt."},{"id":"05","title":"Data Platforms","sub":"Build and deploy an end-to-end NYC taxi data pipeline with Bruin."},{"id":"06","title":"Batch Processing","sub":"Process taxi data at scale with Spark, PySpark, and Spark SQL."},{"id":"07","title":"Streaming","sub":"Produce, consume, and process streaming data with Kafka-compatible tools, Python, and Fl…"}],"eps":[{"n":1,"t":"SQL Refresher","mid":"01","id":"QEcps_iskgg","p":"01-docker-terraform/10-sql-refresher.md","d":"用 SQL 复习 join、group by、窗口函数——本课程所有数据都靠这几句取。","pre":[10,11,13]},{"n":2,"t":"Terraform Overview","mid":"01","id":"18jIzE41fJ4","p":"01-docker-terraform/12-terraform-overview.md","d":"用声明式配置在 GCP 上建 bucket 和 BigQuery 数据集，理解 Terraform 的 state 是什么。","pre":[23,31]},{"n":3,"t":"GCP Overview","mid":"01","id":"18jIzE41fJ4","p":"01-docker-terraform/13-gcp-overview.md","d":"GCP 控制台走一遍：项目、结算、服务账号、权限，先把账号这条路跑通。","pre":[31]},{"n":4,"t":"What is Workflow Orchestration?","mid":"02","id":"-JLnp-iLins","p":"02-workflow-orchestration/01-what-is-workflow-orchestration.md","d":"为什么需要编排器：依赖顺序、失败重试、定时调度、历史回填，四个问题一句话一个。","pre":[32]},{"n":5,"t":"What is Kestra?","mid":"02","id":"ZvVN_NmB_1s","p":"02-workflow-orchestration/02-what-is-kestra.md","d":"Kestra 是什么、为什么用 YAML 声明流程、和 Airflow 的差别在哪。","pre":[23,32]},{"n":6,"t":"Installing Kestra","mid":"02","id":"wgPxC4UjoLM","p":"02-workflow-orchestration/03-installing-kestra.md","d":"用 docker compose 起 Kestra（Postgres 后端 + Web 界面），第一次看清端口怎么映射。","pre":[20,21]},{"n":7,"t":"Kestra Concepts","mid":"02","id":"MNOKVx8780E","p":"02-workflow-orchestration/04-kestra-concepts.md","d":"Kestra 的六个概念：flow / task / namespace / trigger / input / output。","pre":[23]},{"n":8,"t":"Orchestrate Python Code","mid":"02","id":"VAHm0R_XjqI","p":"02-workflow-orchestration/05-orchestrate-python-code.md","d":"把 Python 脚本挂进 flow：传参、读环境变量、把输出交给下一个 task。","pre":[8]},{"n":9,"t":"Getting Started Pipeline","mid":"02","id":"-KmwrCqRhic","p":"02-workflow-orchestration/06-getting-started-pipeline.md","d":"第一个真正跑通的 flow：下载 → 处理 → 输出，验证每一步的产物。","pre":[8,23]},{"n":10,"t":"Local DB: Load Taxi Data to Postgres","mid":"02","id":"Z9ZmmwtXDcU","p":"02-workflow-orchestration/07-load-taxi-data-to-postgres.md","d":"起一个 Postgres 容器，把 taxi 数据灌进去，走一遍建表、COPY、索引。","pre":[20,16]},{"n":11,"t":"Local DB: Learn Scheduling and Backfills","mid":"02","id":"1pu_C_oOAMA","p":"02-workflow-orchestration/08-scheduling-and-backfills.md","d":"用 cron 定时跑，并回填历史数据——顺便踩一次时区的坑。","pre":[32,17]},{"n":12,"t":"ETL vs ELT","mid":"02","id":"E04yurp1tSU","p":"02-workflow-orchestration/09-etl-vs-elt.md","d":"ETL 和 ELT 的差别，为什么云上几乎都是 ELT。","pre":[25,27]},{"n":13,"t":"Setup Google Cloud Platform (GCP)","mid":"02","id":"TLGFAOHpOYM","p":"02-workflow-orchestration/10-setup-google-cloud-platform.md","d":"建 GCP 项目、开 BigQuery、生成服务账号密钥，让脚本能拿到权限。","pre":[31]},{"n":14,"t":"GCP Workflow: Load Taxi Data to BigQuery","mid":"02","id":"52u9X_bfTAo","p":"02-workflow-orchestration/11-load-taxi-data-to-bigquery.md","d":"在 flow 里直接写 BigQuery：外部表 vs 原生表，什么时候用哪个。","pre":[28,31]},{"n":15,"t":"GCP Workflow: Schedule and Backfill Full Dataset","mid":"02","id":"b-6KhfWfk2M","p":"02-workflow-orchestration/12-schedule-and-backfill-full-dataset.md","d":"调度整月数据、控制并发，以及重跑时怎么保证不重复插入。","pre":[29,32]},{"n":16,"t":"Introduction: Why AI for Workflows?","mid":"02","id":"GHPtRDAv044","p":"02-workflow-orchestration/13-why-ai-for-workflows.md","d":"编排里哪些环节适合交给 LLM，哪些千万别交。","pre":[]},{"n":17,"t":"Context Engineering with ChatGPT","mid":"02","id":"LmnfjGKwnVU","p":"02-workflow-orchestration/14-context-engineering-with-chatgpt.md","d":"怎么把需求和报错组织成模型能用的上下文——提示词工程落到工程上的样子。","pre":[]},{"n":18,"t":"AI Copilot in Kestra","mid":"02","id":"3IbjHfC8bMg","p":"02-workflow-orchestration/15-ai-copilot-in-kestra.md","d":"Kestra 内置 Copilot：用自然语言生成 flow，再人工改。","pre":[23]},{"n":19,"t":"Bonus: Retrieval Augmented Generation (RAG)","mid":"02","id":"XuPDQ1UcNyI","p":"02-workflow-orchestration/16-retrieval-augmented-generation.md","d":"RAG 是什么、为什么数据管道天然适合接它（选学）。","pre":[]},{"n":20,"t":"Data Warehouse and BigQuery","mid":"03","id":"jrHljAoD6nM","p":"03-data-warehouse/01-data-warehouse-and-bigquery.md","d":"数据仓库是什么、BigQuery 的架构和计费方式，先建立「扫描量就是钱」的意识。","pre":[9,25,27]},{"n":21,"t":"Partitioning vs Clustering","mid":"03","id":"-CqXf7vhhDs","p":"03-data-warehouse/02-partitioning-vs-clustering.md","d":"分区和聚簇的区别、分别该选哪个字段，决定后面查询快慢。","pre":[28]},{"n":22,"t":"BigQuery Best Practices","mid":"03","id":"k81mLJVX08w","p":"03-data-warehouse/03-bigquery-best-practices.md","d":"BigQuery 的省钱习惯：不写 SELECT *、先估扫描量、用物化视图。","pre":[15,28]},{"n":23,"t":"Internals of BigQuery","mid":"03","id":"eduHi1inM4s","p":"03-data-warehouse/04-internals-of-bigquery.md","d":"BigQuery 内部：列式存储、Dremel 执行模型、slot 是怎么回事。","pre":[28]},{"n":24,"t":"Machine Learning in BigQuery","mid":"03","id":"B-WtpB0PuG4","p":"03-data-warehouse/05-machine-learning-in-bigquery.md","d":"BQML：用 SQL 就能训练模型，不用离开数仓。","pre":[]},{"n":25,"t":"Deploying a Machine Learning Model from BigQuery","mid":"03","id":"BjARzEWaznU","p":"03-data-warehouse/06-deploying-a-machine-learning-model.md","d":"把 BigQuery 里的模型导出来做在线预测（选学）。","pre":[]},{"n":26,"t":"Analytics Engineering Basics","mid":"04","id":"uF76d5EmdtU","p":"04-analytics-engineering/01-analytics-engineering-basics.md","d":"分析工程这个角色在干什么：把原始数据变成可复用、可测试的模型。","pre":[26,27]},{"n":27,"t":"What is dbt?","mid":"04","id":"gsKuETFJr54","p":"04-analytics-engineering/02-what-is-dbt.md","d":"dbt 解决什么：SQL 文件 + 依赖图 + 测试 + 文档，四件事一次搞定。","pre":[12]},{"n":28,"t":"dbt Project Structure","mid":"04","id":"2dYDS4OQbT0","p":"04-analytics-engineering/04-dbt-project-structure.md","d":"dbt 项目的目录结构，staging / core / mart 三层各放什么。","pre":[27]},{"n":29,"t":"dbt Sources","mid":"04","id":"7CrrXazV_8k","p":"04-analytics-engineering/05-dbt-sources.md","d":"用 sources 声明源表，让血缘从数据源头开始画。","pre":[23]},{"n":30,"t":"dbt Models","mid":"04","id":"JQYz-8sl1aQ","p":"04-analytics-engineering/06-dbt-models.md","d":"写模型、用 ref() 建依赖、选物化方式（view / table / incremental）。","pre":[12,13]},{"n":31,"t":"dbt Seeds and Macros","mid":"04","id":"lT4fmTDEqVk","p":"04-analytics-engineering/07-dbt-seeds-and-macros.md","d":"小字典表用 seed 管起来，重复逻辑抽成宏（macro）。","pre":[]},{"n":32,"t":"Documentation","mid":"04","id":"UqoWyMjcqrA","p":"04-analytics-engineering/08-documentation.md","d":"生成文档站点，给每张表写描述——三个月后的你会感谢现在的你。","pre":[]},{"n":33,"t":"dbt Tests","mid":"04","id":"bvZ-rJm7uMU","p":"04-analytics-engineering/09-dbt-tests.md","d":"dbt 测试：唯一、非空、关系测试，把数据质量当成提交前的闸门。","pre":[30]},{"n":34,"t":"dbt Packages","mid":"04","id":"KfhUA9Kfp8Y","p":"04-analytics-engineering/10-dbt-packages.md","d":"用 dbt 包（dbt_utils 等）少造轮子。","pre":[23]},{"n":35,"t":"dbt Commands","mid":"04","id":"t4OeWHW3SsA","p":"04-analytics-engineering/11-dbt-commands.md","d":"run / test / build / docs 的区别，以及 --select 的用法。","pre":[]},{"n":36,"t":"Introduction to Bruin","mid":"05","id":"f6vg7lGqZx0","p":"05-data-platforms/01-introduction.md","d":"Bruin 是什么：把摄取、转换、质量检查放进同一个平台。","pre":[25]},{"n":37,"t":"Getting Started with Bruin","mid":"05","id":"JJwHKSidX_c","p":"05-data-platforms/02-getting-started.md","d":"安装 Bruin、初始化项目、跑通第一个 pipeline。","pre":[1,2]},{"n":38,"t":"Building an End-to-End Pipeline with NYC Taxi Data","mid":"05","id":"q0k_iz9kWsI","p":"05-data-platforms/03-nyc-taxi-pipeline.md","d":"用 NYC taxi 数据走完整链路：ingest → quality → publish。","pre":[27,29]},{"n":39,"t":"Using Bruin MCP with AI Agents","mid":"05","id":"224xH7h8OaQ","p":"05-data-platforms/04-bruin-mcp.md","d":"用 MCP 让 AI 直接操作数据管道（新东西，看个大概即可）。","pre":[]},{"n":40,"t":"Deploying to Bruin Cloud","mid":"05","id":"uBqjLEwF8rc","p":"05-data-platforms/05-bruin-cloud.md","d":"部署到 Bruin Cloud：环境变量、调度、密钥怎么管。","pre":[31]},{"n":41,"t":"Core Concepts: Projects","mid":"05","id":"YWDjnSxbBtY","p":"05-data-platforms/06-core-concepts-projects.md","d":"核心概念之一：项目是配置和资产的边界。","pre":[2]},{"n":42,"t":"Core Concepts: Pipelines","mid":"05","id":"uzp_DiR4Sok","p":"05-data-platforms/07-core-concepts-pipelines.md","d":"核心概念之二：管道的依赖顺序和执行。","pre":[32]},{"n":43,"t":"Core Concepts: Assets","mid":"05","id":"ZElY5SoqrwI","p":"05-data-platforms/08-core-concepts-assets.md","d":"核心概念之三：资产（表 / 文件）怎么声明、怎么互相依赖。","pre":[27]},{"n":44,"t":"Core Concepts: Variables","mid":"05","id":"XCx0nDmhhxA","p":"05-data-platforms/09-core-concepts-variables.md","d":"核心概念之四：变量、多环境区分、密钥不进代码库。","pre":[23]},{"n":45,"t":"Core Concepts: Commands","mid":"05","id":"3nykPEs_V7E","p":"05-data-platforms/10-core-concepts-commands.md","d":"核心概念之五：自定义命令与运行环境。","pre":[8]},{"n":46,"t":"Introduction to Batch Processing","mid":"06","id":"dcHe5Fl3MF8","p":"06-batch/01-introduction-to-batch-processing.md","d":"批处理和流处理的边界，什么规模才值得上 Spark。","pre":[25]},{"n":47,"t":"Introduction to Spark","mid":"06","id":"FhaqbEOuQ8U","p":"06-batch/02-introduction-to-spark.md","d":"Spark 的定位、Driver / Executor 的分工，先建立整体图。","pre":[]},{"n":48,"t":"Installing Spark","mid":"06","id":"hqUbB9c8sKg","p":"06-batch/03-installing-spark.md","d":"本地装 Spark（Windows 那几个坑）和 Java 版本要求。","pre":[1]},{"n":49,"t":"First Look at Spark/PySpark","mid":"06","id":"r_Sf6fCB40c","p":"06-batch/04-first-look-at-spark.md","d":"第一个 DataFrame：理解惰性求值——不触发动作就什么都不算。","pre":[6]},{"n":50,"t":"Spark DataFrames","mid":"06","id":"ti3aC1m3rE8","p":"06-batch/05-spark-dataframes.md","d":"DataFrame 常用操作：select / filter / withColumn，以及 schema 从哪来。","pre":[6,7]},{"n":51,"t":"Preparing Yellow and Green Taxi Data","mid":"06","id":"CI3P4tAtru4","p":"06-batch/06-preparing-taxi-data.md","d":"读 parquet、统一 yellow 和 green 的 schema、写回分区目录。","pre":[5,7]},{"n":52,"t":"SQL with Spark","mid":"06","id":"uAlp2VuZZPY","p":"06-batch/07-sql-with-spark.md","d":"Spark SQL 和 DataFrame 两种写法，以及怎么互相转换。","pre":[12]},{"n":53,"t":"Anatomy of a Spark Cluster","mid":"06","id":"68CipcZt7ZA","p":"06-batch/08-anatomy-of-a-spark-cluster.md","d":"集群解剖：master / worker、作业怎么提交、资源怎么分。","pre":[]},{"n":54,"t":"GroupBy in Spark","mid":"06","id":"9qrDsY_2COo","p":"06-batch/09-groupby-in-spark.md","d":"groupBy 背后的 shuffle，为什么它是最贵的一步。","pre":[11,28]},{"n":55,"t":"Joins in Spark","mid":"06","id":"lu7TrqAWuH4","p":"06-batch/10-joins-in-spark.md","d":"join 的类型、广播小表、数据倾斜怎么处理。","pre":[10]},{"n":56,"t":"Operations on Spark RDDs","mid":"06","id":"Bdu-xIrF3OM","p":"06-batch/11-operations-on-spark-rdds.md","d":"RDD 和 DataFrame 的差别，什么场景还得回到 RDD。","pre":[]},{"n":57,"t":"Spark RDD mapPartition","mid":"06","id":"k3uB2K99roI","p":"06-batch/12-spark-rdd-mappartition.md","d":"mapPartitions：按分区批量处理，省内存也省时间。","pre":[]},{"n":58,"t":"Connecting to Google Cloud Storage","mid":"06","id":"Yyz293hBVcQ","p":"06-batch/13-connecting-to-google-cloud-storage.md","d":"Spark 直接读写 GCS，权限怎么配。","pre":[31]},{"n":59,"t":"Creating a Local Spark Cluster","mid":"06","id":"HXBwSlXo5IA","p":"06-batch/14-creating-a-local-spark-cluster.md","d":"在本机起一个 master + worker 的真集群（还在同一台电脑上）。","pre":[20]},{"n":60,"t":"Setting up a Dataproc Cluster","mid":"06","id":"osAiAYahvh8","p":"06-batch/15-setting-up-a-dataproc-cluster.md","d":"在 GCP 上开 Dataproc，托管 Spark 集群。","pre":[31]},{"n":61,"t":"Connecting Spark to BigQuery","mid":"06","id":"HIm2BOj8C0Q","p":"06-batch/16-connecting-spark-to-bigquery.md","d":"Spark 直连 BigQuery 读写，收尾模块 6。","pre":[28]},{"n":62,"t":"PyFlink: Stream Processing Workshop","mid":"07","id":"YDUgFeHQzJU","p":"07-streaming/01-introduction.md","d":"Flink 流处理工作坊：事件时间、窗口、状态，和批处理的思维差别。","pre":[5,29]},{"n":63,"t":"Q&A","mid":"07","id":"P2loELMUUeI","p":"07-streaming/14-questions-and-answers.md","d":"答疑与后续方向：接下来该练什么、简历上怎么写这个项目。","pre":[]}],"sec":{"1":{"t":"虚拟环境与包管理","part":"第一块 · 编程与数据操作","cards":[{"k":"python -m venv .venv","d":"建虚拟环境。用 python -m 而不是直接 venv，能确保用对解释器"},{"k":"activate","d":"激活。Windows 是 .venv\\Scripts\\activate，Git Bash 里要写 source .venv/Scripts/activate"},{"k":"pip freeze > requirements.txt","d":"导出精确版本，别人 pip install -r 就能复现你的环境"},{"k":"pip install -r requirements.txt","d":"按清单装回全部依赖"},{"k":"where python / which python","d":"确认现在用的是哪个解释器，装错包时第一件事查这个"}]},"2":{"t":"文件、路径与编码","part":"第一块 · 编程与数据操作","cards":[{"k":"open(path, encoding='utf-8')","d":"永远显式指定编码。BOM 文件用 utf-8-sig"},{"k":"with open(...) as f","d":"上下文管理器，出异常也会关文件"},{"k":"Path / mkdir / glob","d":"路径操作三件套，跨平台、不用拼字符串"},{"k":"p.stat().st_size","d":"看文件大小，判断该逐行读还是能一次读"},{"k":"逐行迭代","d":"处理大文件的标准姿势，内存恒定"}]},"3":{"t":"异常处理与日志","part":"第一块 · 编程与数据操作","cards":[{"k":"logging.basicConfig","d":"一次配置，日志同时进文件和屏幕"},{"k":"log.info('%s', x)","d":"用占位符不用 f-string，性能和可检索性都更好"},{"k":"raise_for_status()","d":"把 4xx/5xx 变成异常，不然你拿到的是错误页 HTML 却当成功"},{"k":"except 具体类型 + raise","d":"只捕能处理的，处理完继续抛，别吞异常"},{"k":"退避重试","d":"wait * i 递增，别定速猛打"}]},"4":{"t":"调 API：requests 与分页","part":"第一块 · 编程与数据操作","cards":[{"k":"timeout=30","d":"永远写。没有超时的请求会挂死整条管道"},{"k":"raise_for_status()","d":"4xx/5xx 立刻抛异常，避免把错误响应当数据存进去"},{"k":"params={...}","d":"让 requests 负责 URL 编码，别自己拼 & 和中文"},{"k":"offset / limit 分页","d":"while 循环叠加，直到返回空列表"},{"k":"cursor 分页","d":"数据在变动时用游标，offset 会漏数据"},{"k":"429 + Retry-After","d":"被限流时按对方说的秒数等，别硬刚"}]},"5":{"t":"数据格式：CSV / JSON / Parquet","part":"第一块 · 编程与数据操作","cards":[{"k":"pd.read_csv(dtype=str)","d":"防前导 0 消失、长 ID 被转科学计数法"},{"k":"json_normalize","d":"把嵌套 JSON 摊平成表格"},{"k":"to_parquet / read_parquet","d":"体积小、读得快、带类型，落盘首选"},{"k":"columns=[...]","d":"Parquet 只读需要的列，这是它最大的优势"},{"k":"JSONL 逐行读","d":"一行一个 JSON，适合流式和日志"}]},"6":{"t":"pandas 入门：从表格到结论","part":"第一块 · 编程与数据操作","cards":[{"k":"df.info()","d":"第一步就看它：列类型、非空数、内存占用"},{"k":"loc / iloc","d":"loc 按标签，iloc 按位置。混用是经典 bug 源"},{"k":"布尔切片","d":"每个条件加括号，用 & 和 | 连接"},{"k":"groupby(...).agg(名=(列, 函数))","d":"具名聚合，输出直接是干净的表"},{"k":"to_datetime(errors='coerce')","d":"脏日期先转，转不了的变 NaT 而不是报错中断"},{"k":"isna().sum() / fillna","d":"缺失值先看清楚，再决定填还是删"}]},"7":{"t":"pandas 进阶：连接、透视与内存","part":"第一块 · 编程与数据操作","cards":[{"k":"merge 前后打 len()","d":"行数暴涨 = 键不唯一，先查 duplicated()"},{"k":"how='left'","d":"保左表全部行；inner 只留交集"},{"k":"pivot_table","d":"长表转宽表，做报表用"},{"k":"melt","d":"宽表转长表，入库用"},{"k":"resample('D')","d":"按日/时聚合，前提是先 set_index 成时间索引"},{"k":"astype('category')","d":"低基数字符串列省大量内存"}]},"8":{"t":"把脚本写成人能维护的样子","part":"第一块 · 编程与数据操作","cards":[{"k":"if __name__ == '__main__'","d":"模块被 import 时不执行主流程"},{"k":"argparse","d":"命令行参数带帮助和默认值，比 sys.argv 强太多"},{"k":"os.getenv + .env","d":"配置与代码分离，密码不进仓库"},{"k":".gitignore","d":"至少排除 .venv/ .env data/ __pycache__"},{"k":"Makefile","d":"install / run / clean 三个目标就够用，注意 Tab"},{"k":"函数加类型提示","d":"参数和返回值写清楚，IDE 才能帮你查错"}]},"9":{"t":"OLTP 与 OLAP：两种 SQL 的差别","part":"第二块 · SQL 进阶","cards":[{"k":"SELECT 具体列，不要 *","d":"列存下 * 会扫全部列，直接翻倍账单"},{"k":"分区列上别套函数","d":"WHERE DATE(ts)=... 用不上分区；WHERE ts >= ... 才行"},{"k":"先过滤再 JOIN","d":"把行数压小，中间结果少一个量级"},{"k":"duckdb 本地练 OLAP","d":"一条 pip 就有分析引擎，能直接查 parquet"}]},"10":{"t":"JOIN 全解与三个经典陷阱","part":"第二块 · SQL 进阶","cards":[{"k":"LEFT JOIN + WHERE 右表条件","d":"会把 LEFT 退化成 INNER，丢数据"},{"k":"反连接","d":"LEFT JOIN ... WHERE b.k IS NULL，等价于 NOT EXISTS 且更快"},{"k":"一 join 多","d":"聚合前先确认右表键唯一，否则金额被重复计算"},{"k":"先聚合再连接","d":"把多的一方压成一行，避免行数膨胀"},{"k":"NULL 不匹配","d":"NULL = NULL 结果是 NULL，不是 TRUE"}]},"11":{"t":"聚合与 GROUP BY 的完整语义","part":"第二块 · SQL 进阶","cards":[{"k":"执行顺序","d":"FROM→WHERE→GROUP BY→HAVING→SELECT→ORDER BY，能解释大部分报错"},{"k":"COUNT(*) vs COUNT(col)","d":"后者忽略 NULL，对账时容易误判数据丢失"},{"k":"HAVING","d":"过滤分组后的结果，WHERE 做不到"},{"k":"COALESCE(SUM(x), 0)","d":"全 NULL 时 SUM 返回 NULL，不是 0"},{"k":"条件聚合","d":"SUM(CASE WHEN ... THEN 1 ELSE 0 END) 一行出多个指标"},{"k":"GROUP BY 1","d":"按 select 的第 1 列分组，少写重复表达式"}]},"12":{"t":"子查询与 CTE：把复杂 SQL 拆开","part":"第二块 · SQL 进阶","cards":[{"k":"WITH x AS (...)","d":"把长 SQL 拆成有名字的中间步骤，可逐段验证"},{"k":"EXISTS 优于 IN","d":"子查询有 NULL 时 IN 会全不成立，EXISTS 不受影响"},{"k":"标量子查询","d":"放在 WHERE 里做和全局均值的比较"},{"k":"WITH RECURSIVE","d":"层级/树/图遍历，注意要有终止条件"},{"k":"CTE 可能被内联","d":"重复引用会重复计算，量大时改临时表"}]},"13":{"t":"窗口函数：分析型 SQL 的分水岭","part":"第二块 · SQL 进阶","cards":[{"k":"OVER (PARTITION BY ... ORDER BY ...)","d":"分组 + 排序，是所有窗口函数的基础"},{"k":"ROW_NUMBER vs RANK","d":"前者不重复（取最新一条用它），后者并列跳号"},{"k":"LAG / LEAD","d":"取前一/后一行，环比、留存、漏斗都用它"},{"k":"NULLIF(x,0)","d":"防除零，算比率必须包一层"},{"k":"ROWS BETWEEN","d":"显式写帧，默认 RANGE 遇并列会算多"},{"k":"SUM(x) OVER ()","d":"全表总和，算占比不用额外 join"}]},"14":{"t":"NULL 与三值逻辑：最阴的坑","part":"第二块 · SQL 进阶","cards":[{"k":"col IS NULL","d":"不能用 = NULL，永远返回 NULL"},{"k":"NOT IN + NULL","d":"子查询有 NULL 时一行都查不出，改用 NOT EXISTS"},{"k":"COUNT(*) vs COUNT(col)","d":"后者忽略 NULL，对账时最易误判"},{"k":"COALESCE","d":"给默认值，聚合结果也常需要"},{"k":"NULLIF(x,'')","d":"空字符串转 NULL，统一口径"},{"k":"FILTER (WHERE ...)","d":"PG/DuckDB 语法，一行统计空值数"}]},"15":{"t":"索引与执行计划","part":"第二块 · SQL 进阶","cards":[{"k":"EXPLAIN / EXPLAIN ANALYZE","d":"看 type、rows、cost、分区裁剪，别靠猜"},{"k":"最左前缀","d":"复合索引 (a,b,c) 服务不了只查 b 的语句"},{"k":"列上别套函数","d":"WHERE YEAR(ts)=2026 失效，改范围写法"},{"k":"前导通配符","d":"LIKE '%x' 用不上索引"},{"k":"分区裁剪","d":"分析型引擎最重要的优化，省的是真金白银"},{"k":"ANALYZE TABLE","d":"统计信息过期会让优化器选错计划"}]},"16":{"t":"建表、写入与事务","part":"第二块 · SQL 进阶","cards":[{"k":"NUMERIC 存金额","d":"FLOAT 会丢精度，对账差几分钱"},{"k":"ON CONFLICT / ON DUPLICATE KEY","d":"upsert，重跑不产生重复行"},{"k":"MERGE (BigQuery)","d":"按条件更新或插入，等价于 upsert"},{"k":"BEGIN ... COMMIT","d":"一组操作原子完成，失败回滚"},{"k":"delete + insert","d":"分区级重跑的标准写法，避免空窗"},{"k":"executemany / COPY","d":"批量写入比逐条快几十倍"}]},"17":{"t":"日期时间与时区","part":"第二块 · SQL 进阶","cards":[{"k":"TIMESTAMPTZ + UTC 存储","d":"不要用字符串或裸 TIMESTAMP 存事件时刻"},{"k":"date_trunc('day', ts)","d":"按天/月聚合的标准写法"},{"k":"半开区间","d":">= 起点 AND < 下个起点，别用 BETWEEN 处理时间"},{"k":"AT TIME ZONE","d":"跨时区转换；业务日界线要和需求方确认"},{"k":"分区列别套函数","d":"DATE(pickup_at)=... 会让分区裁剪失效"},{"k":"DATE_DIFF / 减 interval","d":"算时长、账龄、留存天数"}]},"18":{"t":"用 SQL 做数据质量体检","part":"第二块 · SQL 进阶","cards":[{"k":"COUNT(*) vs COUNT(DISTINCT id)","d":"不等就说明主键不唯一，先解决再往下"},{"k":"空值率","d":"每列都算一遍，关键字段空值率过高要报警"},{"k":"重复键 TOP N","d":"GROUP BY ... HAVING COUNT(*)>1 直接看例子"},{"k":"MIN/MAX 时间","d":"看数据是否新鲜、有没有 1970 默认值"},{"k":"分位数","d":"p50 vs mean 差距大 = 有极端值"},{"k":"孤儿行检查","d":"LEFT JOIN ... WHERE 右表为 NULL，查引用完整性"},{"k":"跨层行数对账","d":"raw→staging→fact 每层差异都要能解释"}]},"19":{"t":"Git 最小可用集","part":"第三块 · 工程工具链","cards":[{"k":"git status","d":"最常敲的一条，先看状态再操作"},{"k":"git add <file>","d":"精确添加；git add . 容易带上不想提交的文件"},{"k":"git commit -m '类型: 说明'","d":"约定式提交，历史可读"},{"k":"git switch -c 分支名","d":"为新功能开分支，别直接在 main 上改"},{"k":"git pull --rebase","d":"拉取时把自己的提交接到最新之后，历史更线性"},{"k":"git restore / reset --soft","d":"撤销修改 / 撤销提交但保留改动"}]},"20":{"t":"Docker 心智模型","part":"第三块 · 工程工具链","cards":[{"k":"docker run -d --name x -p 宿主:容器","d":"一条命令起一个服务；左边端口可改，右边不行"},{"k":"-e 环境变量","d":"镜像靠它做初始化配置（用户、密码、库名）"},{"k":"-v 卷名:容器路径","d":"数据持久化，容器删了数据还在"},{"k":"docker logs -f","d":"看容器输出，排查启动失败第一步"},{"k":"docker exec -it ... bash","d":"进容器里看文件、跑命令"},{"k":"host.docker.internal","d":"容器访问宿主机的地址，别用 localhost"}]},"21":{"t":"Dockerfile 与 Compose","part":"第三块 · 工程工具链","cards":[{"k":"COPY requirements.txt 先装依赖","d":"利用层缓存，改代码不用重装包"},{"k":"WORKDIR /app","d":"设定工作目录，后续命令都在这里"},{"k":"docker build -t 名:tag .","d":"点号是构建上下文，别漏"},{"k":"compose 用服务名当主机名","d":"容器间访问用 pgdatabase:5432，不是 localhost"},{"k":"depends_on ≠ 就绪","d":"只保证启动顺序，连接要自己重试"},{"k":".dockerignore","d":"排除 .venv/data，构建快且镜像小"}]},"22":{"t":"命令行里的数据活","part":"第三块 · 工程工具链","cards":[{"k":"管道串联","d":"每个工具做一件小事，| 把输出接给下一个"},{"k":"awk -F',' '{print $1}'","d":"按分隔符取列，NR>1 跳过表头"},{"k":"sort | uniq -c | sort -rn","d":"统计频次并排序，日志分析万能套路"},{"k":"jq -r '.data[].id'","d":"取 JSON 字段，-r 去引号"},{"k":"grep -c / -i / -v","d":"计数 / 忽略大小写 / 反向匹配"},{"k":"head / tail -f","d":"看头几行 / 实时跟日志"}]},"23":{"t":"YAML 与配置文件","part":"第三块 · 工程工具链","cards":[{"k":"缩进只用空格","d":"Tab 会让整份文件失效，且报错行号常误导"},{"k":"冒号后必须有空格","d":"name:ingest 是错的，要写 name: ingest"},{"k":"| 保留换行","d":"写多行 SQL / 脚本块"},{"k":"& 锚点 / * 引用 / <<: 合并","d":"复用公共配置"},{"k":"${VAR:-默认值}","d":"环境变量插值，带默认值"},{"k":"yaml.safe_load 校验","d":"提交前跑一遍，比在 CI 里挂掉好"}]},"24":{"t":"VS Code、Jupyter 与调试","part":"第三块 · 工程工具链","cards":[{"k":"F5 / F9 断点","d":"替代 print，能看全部变量、逐行执行"},{"k":"launch.json","d":"带参数、带环境变量启动调试"},{"k":"jupyter lab","d":"探索数据用它，别用它上线"},{"k":"nbconvert --to script","d":"notebook 转脚本，交给编排器跑"},{"k":"选择解释器","d":"import 不到包时，先确认用的是 .venv 里的 python"}]},"25":{"t":"数据工程到底在干什么","part":"第四块 · 数据工程概念","cards":[{"k":"ETL vs ELT","d":"现在主流是 ELT：原样入仓，仓内转换，逻辑可重跑"},{"k":"批 vs 流","d":"批按周期，简单便宜；流低延迟，但要处理乱序重复"},{"k":"湖 vs 仓 vs lakehouse","d":"湖存文件，仓存优化表，lakehouse = 开放格式 + 元数据层"},{"k":"摄取 / 转换 / 服务","d":"链路三段，课程模块分别对应"},{"k":"数据正确性 > 新功能","d":"日常七成时间在维护和对账，不是写新管道"}]},"26":{"t":"数据建模：从三范式到星型","part":"第四块 · 数据工程概念","cards":[{"k":"先定粒度","d":"「一行代表什么」定不下来，后面全要返工"},{"k":"事实表存度量+外键","d":"数字放事实表，描述放维度表"},{"k":"星型 vs 雪花","d":"维度不展开成子维度就是星型，join 少、查得快"},{"k":"SCD Type 2","d":"加行 + 有效期，能还原历史状态"},{"k":"代理键","d":"事实表存 warehouse 自己生成的 key，不存业务 ID"},{"k":"宽表 trade-off","d":"少 join、BI 友好，但难更新、占空间"}]},"27":{"t":"分层：为什么数据要分好几层","part":"第四块 · 数据工程概念","cards":[{"k":"ODS/DWD/DWS/ADS","d":"原样→清洗→汇总→应用，四层各自的职责"},{"k":"原样落地","d":"第一层不做任何加工，保留重跑的可能"},{"k":"每层可独立验证","d":"分层最大的价值：出错能定位到哪一层"},{"k":"ref() 表达依赖","d":"dbt 靠它自动排执行顺序、生成 DAG"},{"k":"层数克制","d":"三四层够用，每层只做一件明确的事"}]},"28":{"t":"分区、文件布局与列式存储","part":"第四块 · 数据工程概念","cards":[{"k":"PARTITION BY 日期","d":"查询带日期条件就能跳过绝大部分数据"},{"k":"分区列别套函数","d":"DATE(col)=x 会失效，用 col >= ... AND col < ..."},{"k":"CLUSTER BY","d":"分区内再排序，最多 4 列，高频过滤列在前"},{"k":"小文件问题","d":"目标 128MB-1GB，流式写入要定期合并"},{"k":"列式只看需要的列","d":"Parquet 查 2 列就只读 2 列，CSV 要读全部"},{"k":"扫描量=钱","d":"BigQuery 按扫描字节计费，分区是最直接的省钱手段"}]},"29":{"t":"幂等、增量与重跑","part":"第四块 · 数据工程概念","cards":[{"k":"幂等三种写法","d":"覆盖分区 / MERGE / 临时表替换，别裸 INSERT"},{"k":"全量 vs 增量","d":"小表全量最省心，大表必须增量"},{"k":"水位线 watermark","d":"用 MAX(updated_at) 记住进度"},{"k":"overlap 窗口","d":"往回多看一小时，防上游迟到，再靠 upsert 去重"},{"k":"参数化日期","d":"管道要能按任意区间重跑，不能写死 now()"},{"k":"空跑验证","d":"上线前用 --dry-run 或小日期区间跑通再全量"}]},"30":{"t":"数据质量与数据契约","part":"第四块 · 数据工程概念","cards":[{"k":"四类检查","d":"唯一、完整、有效、一致，覆盖九成问题"},{"k":"新鲜度监控","d":"MAX(ts) 太旧说明上游断了，但任务显示成功"},{"k":"dbt tests","d":"unique / not_null / accepted_values / relationships"},{"k":"测试失败要阻断","d":"发通知继续跑等于让脏数据扩散"},{"k":"数据契约","d":"字段、类型、可空、稳定性写清楚并验证"},{"k":"三层监控","d":"任务层、数据层、业务层，业务层最难也最值钱"}]},"31":{"t":"云、成本与权限","part":"第四块 · 数据工程概念","cards":[{"k":"设预算告警","d":"Billing → Budgets，$10 阈值，第一个该做的设置"},{"k":"BigQuery 按扫描量计费","d":"查询前看预估字节数，加分区过滤"},{"k":"虚拟机用完就 stop","d":"关窗口不算停机，磁盘仍在计费"},{"k":"IAM 最小权限","d":"服务账号只给它用到的角色"},{"k":"403 排查顺序","d":"config list → auth list → IAM 角色"},{"k":"区域选择","d":"asia-east1 / asia-northeast1，就近且合规"}]},"32":{"t":"编排与调度","part":"第四块 · 数据工程概念","cards":[{"k":"DAG + 依赖","d":"编排器的核心：声明任务和先后，自动排顺序"},{"k":"逻辑日期","d":"处理的是「哪一天」的数据，不是 now()"},{"k":"重试与超时","d":"网络抖动自愈，挂死不会拖住整条链路"},{"k":"回填 backfill","d":"按日期区间批量重跑，前提是管道参数化了"},{"k":"六条健康标准","d":"幂等、参数化、超时、重试、质量检查、告警"}]}}};</script>
+<script>
+(function () {
+  "use strict";
+  function $(id) { return document.getElementById(id); }
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+    });
+  }
+  function pad(n) { return n < 10 ? "0" + n : "" + n; }
+  function read(k, d) {
+    try { return JSON.parse(localStorage.getItem(k) || "null") || d; } catch (e) { return d; }
+  }
+
+  var DP = read("dezc.progress.v1", {});
+  var PL = read("dezc_player_v1", {});
+  var FD = read("fund.done.v1", {});
+
+  function epDone(e) {
+    if (DP[e.p]) return true;
+    var r = PL[e.id];
+    return !!(r && r.d);
+  }
+
+  var SEC = DATA.sec, MODS = DATA.mods, EPS = DATA.eps;
+  var byMod = {};
+  EPS.forEach(function (e) { (byMod[e.mid] = byMod[e.mid] || []).push(e); });
+
+  function leavesOf(no) {
+    var s = SEC[no];
+    if (!s || !s.cards) return "";
+    return s.cards.map(function (c, i) {
+      return '<a class="leaf" href="fund/player.html?n=' + no + "&tab=card&k=" + i +
+        '" title="' + esc(c.d) + '"><i></i>' + esc(c.k) + "</a>";
+    }).join("");
+  }
+
+  function branchHtml(e) {
+    var pre = e.pre || [];
+    if (!pre.length) return "";
+    var backq = "&back=" + encodeURIComponent("player.html?n=" + e.n) +
+                "&bt=" + encodeURIComponent(e.t);
+    var items = pre.map(function (no) {
+      var s = SEC[no] || { t: "基础第 " + no + " 节", cards: [] };
+      var ncard = (s.cards || []).length;
+      return '<div class="bitem" data-sec="' + no + '">' +
+        '<a class="bs" href="fund/player.html?n=' + no + backq + '">' +
+          '<span class="bno">' + pad(no) + "</span>" +
+          '<span class="bn">' + esc(s.t) + "</span>" +
+          '<span class="bx">' + ncard + " 叶 →</span></a>" +
+        '<div class="leaves">' + leavesOf(no) + "</div>" +
+      "</div>";
+    }).join("");
+    return '<div class="branch">' +
+      '<div class="bh">树枝 · 看这集之前，先把这几节补上</div>' +
+      '<div class="bitems">' + items + "</div></div>";
+  }
+
+  function nodeHtml(e) {
+    var pre = (e.pre || []).length;
+    return '<article class="node" data-n="' + e.n + '" data-pre="' + pre +
+      '" data-t="' + esc(e.t.toLowerCase()) + '">' +
+      '<div class="rail"><span class="dot"></span></div>' +
+      '<div class="body">' +
+        '<div class="ehead">' +
+          '<a class="et" href="player.html?n=' + e.n + '">' +
+            '<span class="no">' + pad(e.n) + "</span>" + esc(e.t) + "</a>" +
+          '<span class="est"></span>' +
+        "</div>" +
+        '<p class="ed">' + esc(e.d || "") + "</p>" +
+        branchHtml(e) +
+      "</div></article>";
+  }
+
+  var html = MODS.map(function (m) {
+    var list = byMod[m.id] || [];
+    return '<section class="mod" data-mid="' + m.id + '">' +
+      '<div class="mrow">' +
+        '<div class="mnode">' + m.id + "</div>" +
+        '<div class="mbody"><h2>' + esc(m.title) +
+          '<em>' + list.length + " 集</em><span class=\"fold\"></span></h2>" +
+          '<p>' + esc(m.sub || "") + "</p></div>" +
+      "</div>" +
+      '<div class="eps">' + list.map(nodeHtml).join("") + "</div>" +
+    "</section>";
+  }).join("");
+
+  $("nodes").innerHTML = html;
+
+  /* ---------- 进度 ---------- */
+  var doneN = 0, totalN = EPS.length;
+  EPS.forEach(function (e) { if (epDone(e)) doneN++; });
+
+  [].forEach.call(document.querySelectorAll(".node"), function (n) {
+    var e = EPS.filter(function (x) { return x.n === +n.dataset.n; })[0];
+    var ok = e && epDone(e);
+    n.classList.toggle("done", !!ok);
+    n.querySelector(".est").textContent = ok ? "已看" : "未看";
+  });
+
+  [].forEach.call(document.querySelectorAll(".bitem"), function (b) {
+    var done = !!FD[b.dataset.sec];
+    b.classList.toggle("done", done);
+    if (done) b.querySelector(".bx").textContent = "已补 ✓";
+  });
+
+  var secs = Object.keys(SEC).length;
+  var secDone = Object.keys(SEC).filter(function (k) { return FD[k]; }).length;
+  var leafN = Object.keys(SEC).reduce(function (a, k) { return a + (SEC[k].cards || []).length; }, 0);
+  $("stat").innerHTML = "干 <b>" + doneN + "</b>/" + totalN +
+    '<span class="dotsep">·</span>枝 <b>' + secDone + "</b>/" + secs +
+    '<span class="dotsep">·</span>叶 <b>' + leafN + "</b>";
+
+  /* 树干填充到「最后一个已看的节点」的位置，比按百分比更贴合实际 */
+  var last = null;
+  [].forEach.call(document.querySelectorAll(".node.done"), function (n) { last = n; });
+  if (last) {
+    var tree = $("tree"), tf = $("trunkfill");
+    /* 用 rect 算，别用 offsetTop：.mod 也是定位元素，offsetParent 不是树 */
+    var h = last.getBoundingClientRect().top - tree.getBoundingClientRect().top + 22;
+    tf.style.height = Math.max(0, h) + "px";
+  }
+
+  /* ---------- 折叠 / 筛选 ---------- */
+  var onlyStuck = false, hideDone = false, noLeaves = false;
+
+  function apply() {
+    var q = ($("q").value || "").trim().toLowerCase();
+    [].forEach.call(document.querySelectorAll(".mod"), function (m) {
+      var shown = 0;
+      [].forEach.call(m.querySelectorAll(".node"), function (n) {
+        var pre = +n.dataset.pre;
+        var isDone = n.classList.contains("done");
+        var ok = true;
+        if (onlyStuck && (isDone || !pre)) ok = false;
+        if (q) {
+          var hit = n.dataset.t.indexOf(q) >= 0;
+          if (!hit) {
+            /* 标题不中就看树枝标题、讲什么、叶子 */
+            [].forEach.call(n.querySelectorAll(".bn,.ed,.leaf"), function (b) {
+              if ((b.textContent || "").toLowerCase().indexOf(q) >= 0) hit = true;
+            });
+          }
+          if (!hit) ok = false;
+        }
+        n.hidden = !ok;
+        if (ok) shown++;
+
+        [].forEach.call(n.querySelectorAll(".bitem"), function (b) {
+          b.hidden = hideDone && b.classList.contains("done");
+        });
+        var br = n.querySelector(".branch");
+        if (br) {
+          var any = [].some.call(br.querySelectorAll(".bitem"), function (b) { return !b.hidden; });
+          br.hidden = !any;
+        }
+      });
+      m.hidden = shown === 0;
+    });
+    document.body.classList.toggle("no-leaves", noLeaves);
+  }
+
+  [].forEach.call(document.querySelectorAll(".mrow"), function (r) {
+    r.addEventListener("click", function (ev) {
+      if (ev.target.closest("a")) return;
+      r.parentNode.classList.toggle("closed");
+    });
+  });
+
+  $("q").addEventListener("input", apply);
+
+  var btns = document.createElement("div");
+  btns.style.cssText = "display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 0";
+  btns.innerHTML =
+    '<button class="btn sm on" id="f-leaves">展开树叶</button>' +
+    '<button class="btn sm" id="f-stuck">只看卡住的</button>' +
+    '<button class="btn sm" id="f-hide">隐藏已补的树枝</button>';
+  document.querySelector(".legend").appendChild(btns);
+
+  $("f-leaves").onclick = function () {
+    noLeaves = !noLeaves;
+    this.classList.toggle("on", !noLeaves);
+    apply();
+  };
+  $("f-stuck").onclick = function () {
+    onlyStuck = !onlyStuck;
+    this.classList.toggle("on", onlyStuck);
+    apply();
+  };
+  $("f-hide").onclick = function () {
+    hideDone = !hideDone;
+    this.classList.toggle("on", hideDone);
+    apply();
+  };
+
+  apply();
+})();
+</script>
+</body>
+</html>
