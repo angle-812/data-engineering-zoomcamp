@@ -679,8 +679,10 @@ const DATA = {"gh":"https://github.com/DataTalksClub/data-engineering-zoomcamp/b
     }
     if (!shown) html = '<div class="empty">没有符合条件的单元</div>';
     listEl.innerHTML = html;
-    $("st-done").textContent = EPS.filter(function (e) { return isDone(e.id); }).length;
+    var nDoneEps = EPS.filter(function (e) { return isDone(e.id); }).length;
+    $("st-done").textContent = nDoneEps;
     $("st-total").textContent = EPS.length;
+    try { localStorage.setItem("hub.de", JSON.stringify({ done: nDoneEps, total: EPS.length })); } catch (err) {}
     var hwAll = Object.keys(DATA.homework || {});
     $("st-hw").textContent = hwAll.filter(hwDoneOf).length;
     $("st-hwt").textContent = hwAll.length;
