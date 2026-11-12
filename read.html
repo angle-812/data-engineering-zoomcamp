@@ -75,7 +75,12 @@
   table{border-collapse:collapse;width:100%;margin:1em 0;font:.82em/1.6 system-ui,sans-serif;display:block;overflow-x:auto}
   th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
   th{background:var(--card);font-weight:600}
-  img{max-width:100%;height:auto;border-radius:9px;border:1px solid var(--line-soft);display:block;margin:1.1em 0}
+  img{max-width:100%;height:auto;border-radius:9px;border:1px solid var(--line-soft);
+    display:block;margin:1.1em 0;cursor:zoom-in}
+  .lb{position:fixed;inset:0;z-index:200;background:rgba(8,10,14,.92);
+    display:flex;align-items:center;justify-content:center;padding:14px;cursor:zoom-out}
+  .lb[hidden]{display:none}
+  .lb img{max-width:100%;max-height:100%;border-radius:6px;margin:0}
   blockquote{
     margin:1em 0;padding:.2em 0 .2em 14px;border-left:3px solid var(--accent-line);
     color:var(--muted);font-style:normal;
@@ -140,6 +145,7 @@
 <div class="hint" id="hint">竖屏阅读：把窗口拖到副屏，按住标题栏拖到屏幕边缘会吸附成整屏。视频留在主屏的学习台，两边会跟着走。</div>
 
 <main id="body"><div class="loading">正在取讲义…</div></main>
+<div class="lb" id="lb" hidden><img id="lb-img" alt=""></div>
 
 <div class="toast" id="toast"></div>
 
@@ -413,6 +419,24 @@ const DATA = {"gh":"https://github.com/DataTalksClub/data-engineering-zoomcamp/b
     }
     if (idx < 0 || idx >= EPS.length) idx = 0;
     load(idx);
+  })();
+
+  /* 图片单击放大（副屏上放大看图） */
+  (function () {
+    var lb = document.getElementById("lb"), im = document.getElementById("lb-img");
+    var body = document.getElementById("body");
+    body.addEventListener("click", function (ev) {
+      var t = ev.target;
+      if (t && t.tagName === "IMG") {
+        im.src = t.currentSrc || t.src;
+        lb.removeAttribute("hidden");
+      }
+    });
+    function close() { lb.setAttribute("hidden", ""); im.src = ""; }
+    lb.addEventListener("click", close);
+    document.addEventListener("keydown", function (ev) {
+      if (ev.key === "Escape") close();
+    });
   })();
 })();
 </script>
