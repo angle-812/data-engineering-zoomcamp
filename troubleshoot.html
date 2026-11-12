@@ -19,7 +19,7 @@ h2{font-size:21px;margin:1.8em 0 .5em;padding-top:.2em;border-top:1px solid var(
 h3{font-size:17.5px;margin:1.5em 0 .4em}
 p,li{color:var(--fg)}
 code{background:var(--code);padding:.15em .4em;border-radius:5px;font-size:.9em;
- font-family:ui-monospace,SFMono-Regular,Consolas,monospace}
+ font-family:ui-monospace,SFMono-Regular,Consolas,monospace;overflow-wrap:anywhere}
 pre{background:var(--code);padding:14px 16px;border-radius:10px;overflow:auto;border:1px solid var(--line)}
 pre code{background:none;padding:0;font-size:13.5px;line-height:1.6}
 table{border-collapse:collapse;width:100%;margin:1em 0;font-size:14px;display:block;overflow:auto}
@@ -32,6 +32,14 @@ hr{border:none;border-top:1px solid var(--line);margin:2em 0}
 .nav a{border:1px solid var(--line);border-radius:9px;padding:9px 14px;color:var(--fg)}
 .nav a:hover{border-color:var(--accent);color:var(--accent);text-decoration:none}
 .nav .empty{border:none}
+@media(max-width:600px){
+ main{padding:22px 14px 60px}
+ .bar .in{padding:8px 14px;gap:10px;flex-wrap:wrap}
+ h1{font-size:23px}h2{font-size:18.5px}h3{font-size:16.5px}
+ table{font-size:13px}th,td{padding:6px 8px}
+ pre{padding:11px 12px;font-size:12.5px}
+ .nav{padding:0 14px 40px;flex-wrap:wrap}
+}
 </style></head><body>
 <div class="bar"><div class="in">
   <a href="index.html">← 看板</a>
