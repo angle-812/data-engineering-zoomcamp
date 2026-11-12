@@ -102,7 +102,12 @@ hr{border:none;border-top:1px solid var(--line);margin:2em 0}
 <tr>
 <td>一行字幕都没有</td>
 <td>这集没开 YouTube 字幕</td>
-<td>播放器齿轮 ⚙ → 字幕 → 选 <code>English (auto-generated)</code></td>
+<td>播放器齿轮 ⚙ → 字幕 → 选 <code>English (auto-generated)</code>，或点学习台的「英文字幕」</td>
+</tr>
+<tr>
+<td>在学习台点了「字幕翻译」，画面还是只有英文</td>
+<td>视频在<strong>嵌入播放器</strong>里，扩展只钩 YouTube 原页；嵌入播放器又默认不播字幕</td>
+<td>先点「英文字幕」，再不行点「YouTube」原页（见场景 A 末尾）</td>
 </tr>
 <tr>
 <td>中文一直显示「翻译中…」</td>
@@ -140,10 +145,22 @@ hr{border:none;border-top:1px solid var(--line);margin:2em 0}
 </ol>
 <p><strong>字幕样式</strong>：鼠标移到画面上，会出现扩展的浮动按钮，可以切换「双语对照 / 仅译文」、调字号和颜色、把字幕位置往上挪（不挡画面底部）。</p>
 <p><strong>重要提醒</strong>：双语字幕是<strong>边播边翻</strong>，中文会晚半句。术语（<code>orchestration</code>、<code>idempotent</code>、<code>watermark</code> 这类）机翻经常不准，看的时候眼睛扫一眼上面那行英文，比死磕中文快。</p>
+<h3 id="_4">在学习台里「开了没反应」，是这个原因</h3>
+<p>学习台的视频是嵌在页面里的（YouTube 的嵌入播放器），不是 <code>youtube.com/watch</code> 那种原页。两个后果叠在一起：</p>
+<ol>
+<li><strong>嵌入播放器默认不放字幕</strong>——画面上本来就没有英文字幕，扩展没有东西可翻，看起来就是「点了没反应」</li>
+<li><strong>扩展的字幕模块主要钩原页</strong>——嵌入页里它经常不接管，或者只接管一半</li>
+</ol>
+<p>所以学习台那排按钮里有两个是为这件事准备的：</p>
+<ul>
+<li><strong>「英文字幕」</strong>：直接用播放器接口把英文字幕挂上（开关状态会记住，换集自动补挂）。点完视频上方会出一条提示，告诉你当前是「已开」还是「这集还没加载出字幕轨」</li>
+<li><strong>「YouTube」</strong>：跳到这集的原页，并且带上你看到的进度（<code>&amp;t=</code>）。原页上扩展一定生效，回来学习台还停在同一集</li>
+</ul>
+<p>顺序就是：先「英文字幕」，看到英文字幕了扩展还不翻，再点「YouTube」。两边都不行，才说明是扩展这一侧的问题——点扩展图标，面板里勾上「<strong>自动开启双语字幕</strong>」，这个开关是<strong>按网站</strong>分别记的，在 <code>angle-812.github.io</code> 上默认是关的，勾完刷新一次页面。</p>
 <hr />
 <h2 id="b">三、场景 B：讲义网页中英对照读</h2>
 <p>课程讲义全是英文 Markdown。<strong>最省事的是学习台里自带的「中英对照」按钮</strong>，不用碰扩展：</p>
-<h3 id="_4">学习台里的「中英对照」</h3>
+<h3 id="_5">学习台里的「中英对照」</h3>
 <p>讲义栏右上角点一下，每段英文下面加一行中文，左边一条蓝杠。再点一下收起。</p>
 <ul>
 <li><strong>第一次翻一节 20–40 秒</strong>：逐段走免费翻译接口，翻一段上一段，不用等全部翻完</li>
@@ -152,7 +169,7 @@ hr{border:none;border-top:1px solid var(--line);margin:2em 0}
 <li><strong>机翻，术语不一定准</strong>：字段名、表名、命令一律以英文原文为准，中文只用来快速理解</li>
 </ul>
 <p>翻不动的话，先确认讲义本身能显示（能显示英文就说明网络通），再不行就在讲义区按 <code>Alt+A</code> 用扩展整页对照。</p>
-<h3 id="_5">其他打开方式的翻译效果</h3>
+<h3 id="_6">其他打开方式的翻译效果</h3>
 <p>三种打开方式，翻译体验不一样：</p>
 <table>
 <thead>
@@ -184,7 +201,7 @@ hr{border:none;border-top:1px solid var(--line);margin:2em 0}
 优点：零安装。缺点：<strong>整页替换</strong>成中文，原文消失；<strong>不支持视频字幕</strong>。</p>
 <p>所以：只看讲义可以用它，要字幕还是得装插件。</p>
 <hr />
-<h2 id="_6">五、想「边看边学」的话，再加一个（可选）</h2>
+<h2 id="_7">五、想「边看边学」的话，再加一个（可选）</h2>
 <p><strong>Language Reactor</strong>（Chrome / Edge 商店都有）：为学语言设计的。</p>
 <ul>
 <li>双语字幕 + <strong>点单词立刻出词典</strong></li>
@@ -194,7 +211,7 @@ hr{border:none;border-top:1px solid var(--line);margin:2em 0}
 </ul>
 <p>它和沉浸式翻译可以共存，但<strong>别同时开</strong>，两套字幕会叠在一起。看技术课用沉浸式翻译，专门练听力时换 Language Reactor。</p>
 <hr />
-<h2 id="_7">六、几个实用细节</h2>
+<h2 id="_8">六、几个实用细节</h2>
 <p><strong>手机上看</strong>
 浏览器扩展在手机上没有。手机方案：装沉浸式翻译的手机 App（iOS / Android 都有），或直接用手机浏览器打开播放页 + 用浏览器自带翻译看讲义。视频字幕在手机 YouTube App 里没法双语，只能开 YouTube 自带的「自动翻译」字幕。</p>
 <p><strong>中文自动翻译质量</strong>
@@ -204,7 +221,7 @@ YouTube 自带的「设置 → 字幕 → 自动翻译 → 中文（简体）」
 - 别装「破解版 / 绿色版」扩展
 - 别一次装五六个翻译插件，互相抢页面，反而更卡</p>
 <hr />
-<h2 id="_8">一句话总结</h2>
+<h2 id="_9">一句话总结</h2>
 <blockquote>
 <p><strong>Edge 商店装「沉浸式翻译」→ 打开播放页看双语字幕 → 讲义页点一下翻译。</strong>
 视频只在浏览器看：https://angle-812.github.io/data-engineering-zoomcamp/player.html</p>
