@@ -194,6 +194,7 @@
     position:sticky;top:74px;display:flex;flex-direction:column;
     height:calc(100vh - 96px);
   }
+  body.has-notice .doc{height:calc(100vh - 138px)}
   .docbar{
     display:flex;align-items:center;gap:8px;padding:9px 12px;flex:none;
     border-bottom:1px solid var(--line);background:var(--card);
@@ -495,7 +496,9 @@
     <div class="docbody hwbody" id="hw-body" hidden></div>
     <div class="notebody" id="note-body" hidden>
       <textarea id="note-text" spellcheck="false" placeholder="这一节记什么：&#10;· 关键概念一句话&#10;· 踩到的坑 / 报错原文&#10;· 能复用的命令&#10;&#10;写完自动存在这台电脑的浏览器里，跟着这一集走。"></textarea>
-      <div class="notefoot"><span id="note-state">自动保存</span><span class="dot">·</span><span id="note-len">0 字</span></div>
+      <div class="notefoot"><span id="note-state">自动保存</span><span class="dot">·</span><span id="note-len">0 字</span>
+        <span style="flex:1"></span>
+        <button class="btn sm" id="note-export" title="把这一集和全部笔记导成 Markdown，可以放进仓库">导出笔记</button></div>
     </div>
   </section>
 
@@ -1026,6 +1029,23 @@ const DATA = {"gh":"https://github.com/DataTalksClub/data-engineering-zoomcamp/b
     }, 450);
   });
 
+  $("note-export").addEventListener("click", function () {
+    var lines = ["# DE Zoomcamp 学习笔记", "",
+                 "导出时间：" + new Date().toLocaleString("zh-CN", { hour12: false }), ""];
+    EPS.forEach(function (e) {
+      var v = (notes[e.p] || "").trim();
+      if (!v) return;
+      lines.push("## " + e.mid + " · " + e.t, "", "> " + e.p, "", v, "");
+    });
+    if (lines.length <= 4) { noteState.textContent = "还没有笔记内容"; return; }
+    var blob = new Blob([lines.join("\n")], { type: "text/markdown;charset=utf-8" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "de-notes-" + new Date().toISOString().slice(0, 10) + ".md";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+  });
+
   /* ---------- 作业：题目 + 我的答案 + 导出 ---------- */
   var AKEY = "dezc_hw_v1", HW = {};
   try { HW = JSON.parse(localStorage.getItem(AKEY) || "{}") || {}; } catch (x) { HW = {}; }
@@ -1503,7 +1523,7 @@ const DATA = {"gh":"https://github.com/DataTalksClub/data-engineering-zoomcamp/b
 
   /* ---------- 启动 ---------- */
   (function boot() {
-    if (location.protocol === "file:") $("notice").hidden = false;
+    if (location.protocol === "file:") { $("notice").hidden = false; document.body.classList.add("has-notice"); }
     seedFromDash();
 
     var m = /[?&]v=([A-Za-z0-9_-]{11})/.exec(location.search);
