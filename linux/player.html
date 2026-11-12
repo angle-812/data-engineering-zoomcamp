@@ -280,6 +280,7 @@ a:hover{text-decoration:underline}
     var n = Object.keys(done).filter(function (k) { return done[k]; }).length;
     $("st-done").textContent = n;
     $("st-total").textContent = CHS.length;
+    try { localStorage.setItem("hub.linux", JSON.stringify({ done: n, total: CHS.length })); } catch (e) {}
   }
 
   /* ---------- 视频 ---------- */
