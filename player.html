@@ -402,6 +402,12 @@
   .tr-zh.inline{display:inline;border:0;padding:0;margin:0}
   .docbody h1 + .tr-zh,.docbody h2 + .tr-zh,.docbody h3 + .tr-zh{font-weight:600;color:var(--muted)}
   .tr-prog{color:var(--accent);font-variant-numeric:tabular-nums}
+  .trmail{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px;align-items:center}
+  .trmail input{
+    flex:1;min-width:170px;padding:7px 10px;border-radius:8px;font:inherit;font-size:12.8px;
+    border:1px solid var(--line);background:var(--card);color:var(--text);
+  }
+  .trmail input:focus{outline:none;border-color:var(--accent-line)}
 
   /* ================= 书本模式 ================= */
   /* 章头：可折叠，带视频进度和作业入口 */
@@ -526,7 +532,7 @@
       </div>
       <span class="dn" id="doc-name">讲义</span>
       <span class="acts">
-        <button class="btn sm" id="btn-tr" title="原文下面加一行中文对照（浏览器内置翻译，离线可用）">中英对照</button>
+        <button class="btn sm" id="btn-tr" title="每段英文下面加一行中文；第一次翻要几十秒，翻过就存本机">中英对照</button>
         <button class="btn sm" id="doc-reload" title="重新载入讲义">重载</button>
         <a class="btn sm" id="doc-open" href="#" target="_blank" rel="noopener">原文</a>
       </span>
@@ -799,7 +805,8 @@ const DATA = {"gh":"https://github.com/DataTalksClub/data-engineering-zoomcamp/b
           hideVeil();
           try { ev.target.setPlaybackRate(speed); } catch (x) {}
           startPoll();
-          paint(ev.target);
+          syncDoneBtn();
+          markCurrentRow();
         },
         onStateChange: function (ev) {
           if (ev.data === YT.PlayerState.ENDED) onEnded();
@@ -1292,17 +1299,94 @@ const DATA = {"gh":"https://github.com/DataTalksClub/data-engineering-zoomcamp/b
     $("tr-close").onclick = function () { box.remove(); };
   }
 
-  async function trGet() {
-    if (trInst) return trInst;
+  var TRMAIL = "dezc_tr_mail";
+  function trMail() { try { return localStorage.getItem(TRMAIL) || ""; } catch (x) { return ""; } }
+
+  /* 引擎 1：浏览器自带翻译（只有语言包已就绪才用，不去触发下载） */
+  async function trBuiltin() {
     if (typeof Translator === "undefined" || !Translator.create) throw new Error("no-api");
-    var av = "readily";
+    var av = "downloadable";
     try {
-      if (Translator.availability) av = await Translator.availability({ sourceLanguage: "en", targetLanguage: "zh" });
+      if (Translator.availability) {
+        av = await Translator.availability({ sourceLanguage: "en", targetLanguage: "zh" });
+      }
     } catch (x) {}
-    if (av === "unavailable") throw new Error("unavailable");
-    trBtn.textContent = av === "downloadable" ? "下载语言包…" : "准备中…";
-    trInst = await Translator.create({ sourceLanguage: "en", targetLanguage: "zh" });
-    return trInst;
+    if (av !== "available" && av !== "readily") throw new Error("not-ready");
+    var inst = await Translator.create({ sourceLanguage: "en", targetLanguage: "zh" });
+    return function (t) { return inst.translate(t); };
+  }
+
+  /* 引擎 2：免费在线接口（单次 ≤500 字节，逐段串行，失败重试一次） */
+  function mmOnce(text) {
+    var m = trMail();
+    var url = "https://api.mymemory.translated.net/get?q=" +
+      encodeURIComponent(text) + "&langpair=en|zh-CN" + (m ? "&de=" + encodeURIComponent(m) : "");
+    return fetch(url, { cache: "no-store" }).then(function (r) {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    }).then(function (d) {
+      if (d && d.quotaFinished) throw new Error("quota");
+      var t = d && d.responseData && d.responseData.translatedText;
+      if (!t) throw new Error("empty");
+      if (/MYMEMORY WARNING|QUERY LENGTH LIMIT|INVALID|QUOTA/i.test(t)) throw new Error("quota");
+      return t;
+    });
+  }
+
+  function trSplit(text) {
+    if (text.length <= 400) return [text];
+    var segs = text.match(/[^.!?。！？]+[.!?。！？]*\s*/g) || [text];
+    var out = [], cur = "";
+    for (var i = 0; i < segs.length; i++) {
+      var sx = segs[i];
+      while (sx.length > 400) {
+        if (cur) { out.push(cur); cur = ""; }
+        out.push(sx.slice(0, 400));
+        sx = sx.slice(400);
+      }
+      if ((cur + sx).length > 400) { out.push(cur); cur = sx; }
+      else cur += sx;
+    }
+    if (cur.trim()) out.push(cur);
+    return out;
+  }
+
+  async function trOnline(text) {
+    var parts = trSplit(text), bag = [];
+    for (var i = 0; i < parts.length; i++) {
+      var got = null, lastErr = null;
+      for (var k = 0; k < 2 && !got; k++) {
+        try { got = await mmOnce(parts[i]); }
+        catch (e) { lastErr = e; await new Promise(function (r) { setTimeout(r, 500); }); }
+      }
+      if (!got) throw lastErr || new Error("empty");
+      bag.push(got);
+      await new Promise(function (r) { setTimeout(r, 80); });
+    }
+    return bag.join("");
+  }
+
+  var trEngine = null;
+  async function trGet() {
+    if (trEngine) return trEngine;
+    trBtn.textContent = "准备中…";
+    try { trEngine = await trBuiltin(); return trEngine; }
+    catch (x) { trEngine = trOnline; return trEngine; }
+  }
+
+  function trPaintOne(el, zh) {
+    if (!el || !el.parentNode || !zh) return;
+    var d = document.createElement("div");
+    d.className = "tr-zh";
+    d.textContent = zh;
+    el.parentNode.insertBefore(d, el.nextSibling);
+  }
+
+  /* 缓存按「原文」存，翻到一半断了，下次只补没翻的 */
+  function trBank(p) {
+    var b = trCache[p];
+    if (!b || typeof b !== "object" || b instanceof Array) { b = {}; trCache[p] = b; }
+    return b;
   }
 
   async function trRun() {
@@ -1317,11 +1401,17 @@ const DATA = {"gh":"https://github.com/DataTalksClub/data-engineering-zoomcamp/b
 
     trClear();
     var list = trBlocks();
-    if (!list.length) { trOn = false; trBtn.classList.remove("on"); trBtn.textContent = "中英对照"; return; }
+    if (!list.length) {
+      trOn = false; trBtn.classList.remove("on"); trBtn.textContent = "中英对照";
+      return;
+    }
 
-    var cached = trCache[e.p];
-    if (cached && cached.length === list.length) {
-      trPaint(list, cached);
+    var bank = trBank(e.p), todo = [], i;
+    for (i = 0; i < list.length; i++) {
+      if (bank[list[i].t]) trPaintOne(list[i].el, bank[list[i].t]);
+      else todo.push(list[i]);
+    }
+    if (!todo.length) {
       trBtn.textContent = "双语 ✓";
       trBtn.classList.add("on");
       trOn = true;
@@ -1330,30 +1420,56 @@ const DATA = {"gh":"https://github.com/DataTalksClub/data-engineering-zoomcamp/b
 
     trBusy = true;
     trBtn.classList.add("on");
+    var doneAll = list.length - todo.length, quotaHit = false;
     try {
       var tr = await trGet();
-      var out = [];
-      for (var i = 0; i < list.length; i++) {
-        trBtn.textContent = "翻译 " + (i + 1) + "/" + list.length;
-        try { out.push(await tr.translate(list[i].t)); } catch (x) { out.push(""); }
+      for (i = 0; i < todo.length; i++) {
+        if (!trOn) break;
+        trBtn.textContent = "翻译 " + (i + 1) + "/" + todo.length;
+        var zh = "";
+        try { zh = await tr(todo[i].t); }
+        catch (x) {
+          if (x && x.message === "quota") { quotaHit = true; break; }
+          zh = "";
+        }
+        if (zh) { bank[todo[i].t] = zh; trPaintOne(todo[i].el, zh); doneAll++; }
+        if ((i + 1) % 3 === 0) trSave();
       }
-      trCache[e.p] = out; trSave();
-      trPaint(list, out);
-      trBtn.textContent = "双语 ✓";
-      trBtn.classList.add("on");
-      trOn = true;
+      trSave();
+      if (doneAll) {
+        trBtn.textContent = "双语 ✓";
+        trBtn.classList.add("on");
+        trOn = true;
+      } else {
+        trOn = false;
+        trBtn.classList.remove("on");
+        trBtn.textContent = "中英对照";
+      }
+      if (quotaHit) {
+        trHint("<b>免费额度今天用完了</b>：这个接口不填邮箱时每个 IP 每天只有 5000 字（一节讲义就 5000–8000 字）。" +
+          "<br><br>填个邮箱就能提到 <b>5 万字/天</b>（只是他们的用量统计，不发广告）：" +
+          '<div class="trmail"><input id="tr-mail" type="email" placeholder="you@example.com" value="' + esc(trMail()) + '">' +
+          '<button class="btn sm" id="tr-mail-ok">保存并继续</button></div>' +
+          "<br>不想填也行：装好的<b>沉浸式翻译</b>在讲义上按 <b>Alt+A</b>，整页立刻中英对照。");
+        var ok = $("tr-mail-ok");
+        if (ok) ok.onclick = function () {
+          var v = ($("tr-mail").value || "").trim();
+          try { localStorage.setItem(TRMAIL, v); } catch (x) {}
+          trOn = true; trRun();
+        };
+      }
     } catch (err) {
+      trOn = false;
+      trBtn.classList.remove("on");
+      trBtn.textContent = "中英对照";
       var m = (err && err.message) || String(err);
-      if (m === "no-api") {
-        trHint("<b>这个浏览器没有内置翻译能力</b>，要用新版 Edge / Chrome。" +
-          "<br><br>替代办法：装「沉浸式翻译」扩展，在讲页面按 <b>Alt+A</b> 整页中英对照，视频字幕也在同一个扩展里开。");
-      } else if (m === "unavailable") {
-        trHint("<b>这台机器上翻译语言包不可用</b>，浏览器策略或系统语言把它关了。" +
-          "<br>用「沉浸式翻译」扩展同样能整页对照，而且能同步翻视频字幕。");
+      if (m === "no-api" || m === "not-ready") {
+        trHint("<b>这台浏览器里没有现成的翻译引擎</b>，已经自动改走在线翻译，但这条也没通。" +
+          "<br>先确认加速通道是连着的（讲义能从 GitHub 取下来就说明通），再点一次。");
       } else {
         trHint("<b>翻译没跑起来</b>：" + esc(m) +
-          "<br><br>首次使用要下载语言包（几十 MB），网络不通就会卡住。接上加速器再点一次，" +
-          "或者直接用「沉浸式翻译」扩展。");
+          "<br><br>多半是网络断了或接口被限流。接上加速器再点一次；" +
+          "或者用<b>沉浸式翻译</b>在讲义区按 <b>Alt+A</b>。");
       }
     } finally {
       trBusy = false;
@@ -1362,8 +1478,8 @@ const DATA = {"gh":"https://github.com/DataTalksClub/data-engineering-zoomcamp/b
 
   trBtn.onclick = function () {
     if (trOn) {
-      trClear();
       trOn = false;
+      trClear();
       trBtn.classList.remove("on");
       trBtn.textContent = "中英对照";
       return;
