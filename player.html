@@ -216,6 +216,23 @@
   .btn:disabled{opacity:.4;cursor:default;border-color:var(--line);color:var(--muted)}
   .btn.on{background:var(--accent-weak);border-color:var(--accent-line);color:var(--accent)}
   .btn.sm{padding:4px 9px;font-size:12.5px}
+  /* 点了「英文字幕」之后的即时反馈，别让按钮点下去像没反应 */
+  .ccnote{
+    margin:9px 0 0;padding:8px 11px;font-size:12.5px;line-height:1.6;
+    border-left:3px solid var(--accent);border-radius:8px;
+    background:var(--accent-weak);color:var(--text);
+  }
+  .ccnote[hidden]{display:none}
+  .ccnote b{color:var(--accent)}
+  /* 「双语字幕」弹窗顶部的排障块 */
+  .cx{
+    border:1px solid var(--accent-line);background:var(--accent-weak);
+    border-radius:10px;padding:10px 12px 11px;margin:0 0 14px;font-size:13px;line-height:1.65;
+  }
+  .cx ol{margin:7px 0 9px;padding-left:1.35em}
+  .cx li{margin:3px 0}
+  .cx .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:2px}
+  .cx .acts .btn{background:var(--card)}
   .sep{width:1px;height:22px;background:var(--line);margin:0 4px}
   .sw{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);cursor:pointer;user-select:none}
   .sw input{accent-color:var(--accent);width:15px;height:15px;cursor:pointer}
@@ -570,6 +587,7 @@
       <div id="player"></div>
       <div class="veil" id="veil" hidden></div>
     </div>
+    <div class="ccnote" id="cc-note" hidden></div>
 
     <div class="meta">
       <div class="crumb" id="ep-mod">—</div>
@@ -584,7 +602,10 @@
         <button class="btn sm" id="btn-done">标记已看</button>
         <button class="btn sm" id="btn-restart">从头播</button>
         <a class="btn sm" id="lnk-doc" href="#" target="_blank" rel="noopener">讲义</a>
+        <a class="btn sm" id="lnk-yt" href="https://www.youtube.com/" target="_blank" rel="noopener"
+           title="在 YouTube 原页看这集：扩展的字幕翻译在那里一定生效，回来位置还在">YouTube</a>
         <button class="btn sm" id="btn-subs" title="视频怎么开中英双字幕">双语字幕</button>
+        <button class="btn sm" id="btn-cc" title="先把 YouTube 英文字幕打开，扩展才会在它下面叠中文">英文字幕</button>
         <span class="sep"></span>
         <button class="btn sm spd" data-speed="1">1×</button>
         <button class="btn sm spd" data-speed="1.25">1.25×</button>
@@ -669,6 +690,19 @@
       <button class="btn sm" id="subs-close">关闭</button>
     </div>
     <div class="mbody">
+      <div class="cx">
+        <b>「开了字幕翻译，这里却没反应」？</b>几乎都是这一个原因：视频跑在本站的嵌入播放器里，
+        扩展的字幕模块钩的是 <code>youtube.com/watch</code> 那种原页。按顺序试：
+        <ol>
+          <li>点下面的 <b>「开英文字幕」</b>——嵌入播放器默认不播字幕，没字幕可翻，自然一片空白。</li>
+          <li>还没有中文，就点 <b>「去这集的 YouTube 原页」</b>：扩展的字幕模块就是为原页做的，那边一定接管。回来时学习台记得住看到哪。</li>
+          <li>两个都不行：点扩展图标，面板里勾上 <b>「自动开启双语字幕」</b>——它是<b>按网站</b>记的，本站默认是关的；勾完刷新一次页面。</li>
+        </ol>
+        <div class="acts">
+          <button class="btn sm" id="subs-cc">开英文字幕</button>
+          <a class="btn sm" id="subs-yt" href="https://www.youtube.com/" target="_blank" rel="noopener">去这集的 YouTube 原页</a>
+        </div>
+      </div>
       <p class="lead">课程视频是英文的，官方字幕也是英文。要中文，靠「沉浸式翻译」<b>官方版</b>扩展——它能给 YouTube 叠一层双语字幕。</p>
 
       <h4>先确认装的是正版</h4>
@@ -683,7 +717,7 @@
         <li>进 <b>设置</b> → 左侧 <b>视频字幕</b> → 打开「启用字幕翻译」，显示方式选 <b>双语</b>，字号按自己舒服调。</li>
         <li>装完把旧的同名扩展删掉（地址栏输 <b>edge://extensions</b>），两个一起开会把同一段话翻两遍。</li>
       </ol>
-      <p class="note">设完回播放页刷新一次，播放时字幕位置会出现两行。字幕不出来的两种情况：<b>这集没开 YouTube 字幕</b>（播放器齿轮 ⚙ → 字幕 → English auto-generated），或<b>扩展里的「字幕翻译」没打开</b>（点扩展图标 → 更多功能）。</p>
+      <p class="note">设完回播放页刷新一次，播放时字幕位置会出现两行。字幕不出来的两种情况：<b>这集没开 YouTube 字幕</b>（点视频下面的「英文字幕」，或播放器齿轮 ⚙ → 字幕 → English auto-generated），或<b>扩展里的「字幕翻译」没打开</b>（点扩展图标 → 更多功能）。</p>
       <p class="note">完整的自检清单和故障对照：<a href="translate.html" target="_blank" rel="noopener"><b>翻译与外挂字幕手册 →</b></a></p>
 
       <h4>不想装扩展的替代方案</h4>
@@ -879,10 +913,15 @@ const DATA = {"gh":"https://github.com/DataTalksClub/data-engineering-zoomcamp/b
           startPoll();
           syncDoneBtn();
           markCurrentRow();
+          if (ccOn) setTimeout(function () { applyCC(true); }, 900);
         },
         onStateChange: function (ev) {
           if (ev.data === YT.PlayerState.ENDED) onEnded();
           if (ev.data === YT.PlayerState.PLAYING) startPoll();
+          // 字幕轨道要开始播才加载，开播后补挂一次
+          if (ev.data === YT.PlayerState.PLAYING && ccOn && !ccApplied) {
+            setTimeout(function () { applyCC(true); }, 600);
+          }
         },
         onError: function (ev) {
           var code = ev.data;
@@ -1007,6 +1046,7 @@ const DATA = {"gh":"https://github.com/DataTalksClub/data-engineering-zoomcamp/b
     $("ep-title").textContent = e.t;
     renderGuide(e);
     $("lnk-doc").href = docHref(e);
+    $("lnk-yt").href = watchUrl(e, false);
     $("btn-prev").disabled = idx === 0;
     $("btn-next").disabled = idx === EPS.length - 1;
     syncDoneBtn();
@@ -1030,6 +1070,9 @@ const DATA = {"gh":"https://github.com/DataTalksClub/data-engineering-zoomcamp/b
     var start = opts.fromStart ? 0 : startAt(e);
     player.loadVideoById({ videoId: e.id, startSeconds: start });
     try { player.setPlaybackRate(speed); } catch (x) {}
+    // 换集后字幕模块会被重置，记得过一会儿再点上（不然切下一集就「又没反应」）
+    ccApplied = false;
+    if (ccOn) setTimeout(function () { applyCC(true); }, 1500);
     if (opts.autoplay) { try { player.playVideo(); } catch (x) {} }
   }
 
@@ -1737,9 +1780,121 @@ const DATA = {"gh":"https://github.com/DataTalksClub/data-engineering-zoomcamp/b
   $("plan-close").onclick = function () { $("plan").hidden = true; };
   $("plan").addEventListener("click", function (ev) { if (ev.target === this) this.hidden = true; });
 
-  $("btn-subs").onclick = function () { $("subs").hidden = false; };
+  $("btn-subs").onclick = function () {
+    var e = EPS[clampIdx()];
+    var u = e ? watchUrl(e, true) : "https://www.youtube.com/";
+    $("subs-yt").href = u;
+    $("lnk-yt").href = e ? watchUrl(e, false) : u;
+    $("subs").hidden = false;
+  };
   $("subs-close").onclick = function () { $("subs").hidden = true; };
   $("subs").addEventListener("click", function (ev) { if (ev.target === this) this.hidden = true; });
+
+  /* ---------- 英文字幕：嵌入播放器里先得有字幕，扩展才有东西可翻 ---------- */
+  var CCKEY = "dezc.cc.v1", ccOn = false, ccTimer = null, ccApplied = false;
+  try { ccOn = localStorage.getItem(CCKEY) === "1"; } catch (x) {}
+
+  function watchUrl(e, withTime) {
+    var u = "https://www.youtube.com/watch?v=" + e.id;
+    if (withTime && player && typeof player.getCurrentTime === "function") {
+      try {
+        var t = Math.floor(player.getCurrentTime() || 0);
+        if (t > 20) u += "&t=" + t + "s";
+      } catch (x) {}
+    }
+    return u;
+  }
+
+  function saveCC() { try { localStorage.setItem(CCKEY, ccOn ? "1" : "0"); } catch (x) {} }
+
+  function ccNote(html, ms) {
+    var el = $("cc-note");
+    if (!el) return;
+    el.innerHTML = html;
+    el.hidden = false;
+    if (ccTimer) clearTimeout(ccTimer);
+    ccTimer = setTimeout(function () { el.hidden = true; }, ms || 12000);
+  }
+
+  function paintCC() {
+    var b = $("btn-cc");
+    if (!b) return;
+    b.classList.toggle("on", ccOn);
+    b.textContent = ccOn ? "字幕已开" : "英文字幕";
+  }
+
+  function ccPick() {
+    var list = [];
+    try { list = player.getOption("captions", "tracklist") || []; } catch (x) { list = []; }
+    return list;
+  }
+
+  /* 从轨道表里挑一条（优先英文），挑到就点上 */
+  function ccSetTrack(list, quiet) {
+    if (!list.length) return false;
+    var tr = null, i;
+    for (i = 0; i < list.length; i++) {
+      if ((list[i].languageCode || "").indexOf("en") === 0) { tr = list[i]; break; }
+    }
+    if (!tr) tr = list[0];
+    try { player.loadModule("captions"); } catch (x) {}
+    try { player.setOption("captions", "track", { languageCode: tr.languageCode }); } catch (x) {}
+    ccApplied = true;
+    if (!quiet) {
+      ccNote("英文字幕已开（" + esc(tr.languageCode || "en") + "）。<b>扩展现在才有东西可翻</b>；" +
+        "下面还没出中文，就点旁边的「YouTube」——原页上扩展一定接管。");
+    }
+    return true;
+  }
+
+  function applyCC(quiet) {
+    if (!player || typeof player.setOption !== "function") {
+      if (!quiet) ccNote("播放器还在加载，等画面出来再点一次。");
+      return;
+    }
+    if (!ccOn) {
+      try { player.unloadModule("captions"); } catch (x) {}
+      ccApplied = false;
+      if (!quiet) ccNote("英文字幕已关。");
+      return;
+    }
+    if (ccSetTrack(ccPick(), quiet)) return;
+    // 字幕模块常在开始播放后才加载：先挂上模块，再连着试几次，别让按钮看着像死的
+    try { player.loadModule("captions"); } catch (x) {}
+    if (!quiet) ccNote("正在给这集挂英文字幕……", 4000);
+    var tries = 0;
+    (function retry() {
+      if (!ccOn || ccApplied) return;
+      tries++;
+      if (tries > 3) {
+        if (!quiet) {
+          ccNote("播放器还没把字幕轨交出来。<b>先点一下播放</b>，出字后会自动变双语；" +
+            "等不及就直接去 <b>YouTube 原页</b>，那边扩展一定接管。");
+        }
+        return;
+      }
+      setTimeout(function () {
+        if (!ccOn || ccApplied) return;
+        if (ccSetTrack(ccPick(), quiet)) return;
+        // 课程视频基本就是自动英文字幕，第二轮回直接按 en 挂一次
+        if (tries === 2) {
+          try { player.setOption("captions", "track", { languageCode: "en" }); } catch (x) {}
+        }
+        retry();
+      }, 700);
+    })();
+  }
+
+  paintCC();
+  $("btn-cc").onclick = function () { ccOn = !ccOn; saveCC(); paintCC(); applyCC(false); };
+  $("subs-cc").onclick = function () {
+    ccOn = true; saveCC(); paintCC(); applyCC(false);
+    $("subs").hidden = true;
+  };
+  $("lnk-yt").addEventListener("click", function () {
+    var e = EPS[clampIdx()];
+    if (e) this.href = watchUrl(e, true);
+  });
 
   /* ---------- 事件 ---------- */
   listEl.addEventListener("click", function (ev) {
@@ -1854,6 +2009,7 @@ const DATA = {"gh":"https://github.com/DataTalksClub/data-engineering-zoomcamp/b
     $("ep-title").textContent = e.t;
     renderGuide(e);
     $("lnk-doc").href = docHref(e);
+    $("lnk-yt").href = watchUrl(e, false);
     $("btn-prev").disabled = idx === 0;
     $("btn-next").disabled = idx === EPS.length - 1;
     syncDoneBtn();
