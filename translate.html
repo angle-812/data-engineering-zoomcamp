@@ -68,6 +68,57 @@ hr{border:none;border-top:1px solid var(--line);margin:2em 0}
 </ul>
 <p>⚠️ 只在<strong>官方商店</strong>或<strong>官网</strong>装。搜索引擎广告位里的「沉浸式翻译下载」有一半是套壳，会偷浏览器数据。</p>
 <hr />
+<h3 id="3">装完先自检：3 个动作确定能用</h3>
+<p>装完不是看到工具栏多个图标就算完，按顺序做完这三步，才算真的能用：</p>
+<ul>
+<li>☐ <strong>1. 确认装的是正版</strong>：点扩展图标 → <strong>设置</strong>，左侧菜单里要能看到「<strong>视频字幕</strong>」这一项。没有这一项的，是精简版或套壳，卸掉重装（详见下面「先确认装的是正版」）</li>
+<li>☐ <strong>2. 翻译服务选「微软翻译」</strong>：设置 → 翻译服务 → 选 <strong>微软翻译</strong>。免费、不用填任何 Key。选了 DeepL / OpenAI 又没额度，字幕会一直转圈不出中文</li>
+<li>☐ <strong>3. 打开播放页看实际效果</strong>：https://angle-812.github.io/data-engineering-zoomcamp/player.html → 随便点一集开播 → 画面上应该是<strong>两行</strong>（英文在上、中文在下）</li>
+</ul>
+<p>三步都过，就可以开始看了。</p>
+<p><strong>字幕不出来，按这个顺序查</strong>（九成是前两条）：</p>
+<table>
+<thead>
+<tr>
+<th>现象</th>
+<th>原因</th>
+<th>怎么修</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>只有英文，没有中文</td>
+<td>扩展的字幕翻译开关没开</td>
+<td>点图标 → <strong>更多功能</strong> → 打开「字幕翻译」</td>
+</tr>
+<tr>
+<td>一行字幕都没有</td>
+<td>这集没开 YouTube 字幕</td>
+<td>播放器齿轮 ⚙ → 字幕 → 选 <code>English (auto-generated)</code></td>
+</tr>
+<tr>
+<td>中文一直显示「翻译中…」</td>
+<td>翻译服务没选对 / 额度用完</td>
+<td>设置 → 翻译服务 → 换「微软翻译」</td>
+</tr>
+<tr>
+<td>两行字重叠、挡住画面</td>
+<td>字幕样式没调</td>
+<td>鼠标移到画面 → 浮动按钮 → 调字号、把位置往上挪</td>
+</tr>
+<tr>
+<td>扩展图标是灰的、点了没反应</td>
+<td>装了两个同名扩展在打架</td>
+<td>地址栏输 <code>edge://extensions</code>，只留 Immersive Translate 那一个</td>
+</tr>
+<tr>
+<td>个别视频始终没字幕</td>
+<td>该视频没有字幕轨，YouTube 也没自动生成</td>
+<td>别死磕，直接看讲义「中英对照」，理解更快</td>
+</tr>
+</tbody>
+</table>
+<hr />
 <h2 id="ayoutube">二、场景 A：YouTube 看课时开双语字幕</h2>
 <p>装好之后，直接打开播放页，字幕会自动变成两行：<strong>英文在上、中文在下</strong>。</p>
 <p>没出现的话按顺序查这三处：</p>
@@ -139,5 +190,5 @@ YouTube 自带的「设置 → 字幕 → 自动翻译 → 中文（简体）」
 <p><strong>Edge 商店装「沉浸式翻译」→ 打开播放页看双语字幕 → 讲义页点一下翻译。</strong>
 视频只在浏览器看：https://angle-812.github.io/data-engineering-zoomcamp/player.html</p>
 </blockquote></main>
-<div class="nav"><a href="github-desktop.html">← GitHub Desktop 使用手册</a><span class="empty"></span></div>
+<div class="nav"><a href="github-desktop.html">← GitHub Desktop 使用手册</a><a href="troubleshoot.html">加速器故障排查 →</a></div>
 </body></html>
