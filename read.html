@@ -338,14 +338,86 @@ const DATA = {"gh":"https://github.com/DataTalksClub/data-engineering-zoomcamp/b
     m.insertBefore(box, m.firstChild);
   }
 
-  async function trGet() {
-    if (trInst) return trInst;
+  var TRMAIL = "dezc_tr_mail";
+  function trMail() { try { return localStorage.getItem(TRMAIL) || ""; } catch (x) { return ""; } }
+
+  async function trBuiltin() {
     if (typeof Translator === "undefined" || !Translator.create) throw new Error("no-api");
-    var av = "readily";
+    var av = "downloadable";
     try { if (Translator.availability) av = await Translator.availability({ sourceLanguage: "en", targetLanguage: "zh" }); } catch (x) {}
-    if (av === "unavailable") throw new Error("unavailable");
-    trInst = await Translator.create({ sourceLanguage: "en", targetLanguage: "zh" });
-    return trInst;
+    if (av !== "available" && av !== "readily") throw new Error("not-ready");
+    var inst = await Translator.create({ sourceLanguage: "en", targetLanguage: "zh" });
+    return function (t) { return inst.translate(t); };
+  }
+
+  function mmOnce(text) {
+    var m = trMail();
+    var url = "https://api.mymemory.translated.net/get?q=" + encodeURIComponent(text) +
+      "&langpair=en|zh-CN" + (m ? "&de=" + encodeURIComponent(m) : "");
+    return fetch(url, { cache: "no-store" }).then(function (r) {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    }).then(function (d) {
+      if (d && d.quotaFinished) throw new Error("quota");
+      var t = d && d.responseData && d.responseData.translatedText;
+      if (!t) throw new Error("empty");
+      if (/MYMEMORY WARNING|QUERY LENGTH LIMIT|INVALID|QUOTA/i.test(t)) throw new Error("quota");
+      return t;
+    });
+  }
+
+  function trSplit(text) {
+    if (text.length <= 400) return [text];
+    var segs = text.match(/[^.!?。！？]+[.!?。！？]*\s*/g) || [text];
+    var out = [], cur = "";
+    for (var i = 0; i < segs.length; i++) {
+      var sx = segs[i];
+      while (sx.length > 400) {
+        if (cur) { out.push(cur); cur = ""; }
+        out.push(sx.slice(0, 400));
+        sx = sx.slice(400);
+      }
+      if ((cur + sx).length > 400) { out.push(cur); cur = sx; }
+      else cur += sx;
+    }
+    if (cur.trim()) out.push(cur);
+    return out;
+  }
+
+  async function trOnline(text) {
+    var parts = trSplit(text), bag = [];
+    for (var i = 0; i < parts.length; i++) {
+      var got = null, lastErr = null;
+      for (var k = 0; k < 2 && !got; k++) {
+        try { got = await mmOnce(parts[i]); }
+        catch (e) { lastErr = e; await new Promise(function (r) { setTimeout(r, 500); }); }
+      }
+      if (!got) throw lastErr || new Error("empty");
+      bag.push(got);
+      await new Promise(function (r) { setTimeout(r, 80); });
+    }
+    return bag.join("");
+  }
+
+  var trEngine = null;
+  async function trGet() {
+    if (trEngine) return trEngine;
+    $("b-tr").textContent = "…";
+    try { trEngine = await trBuiltin(); return trEngine; }
+    catch (x) { trEngine = trOnline; return trEngine; }
+  }
+
+  function trOne(el, zh) {
+    if (!el || !el.parentNode || !zh) return;
+    var d = document.createElement("div");
+    d.className = "tr-zh"; d.textContent = zh;
+    el.parentNode.insertBefore(d, el.nextSibling);
+  }
+
+  function trBank(p) {
+    var b = trCache[p];
+    if (!b || typeof b !== "object" || b instanceof Array) { b = {}; trCache[p] = b; }
+    return b;
   }
 
   async function trRun() {
@@ -361,30 +433,41 @@ const DATA = {"gh":"https://github.com/DataTalksClub/data-engineering-zoomcamp/b
     var list = trBlocks();
     if (!list.length) { trOn = false; $("b-tr").classList.remove("on"); return; }
 
-    var cached = trCache[e.p];
-    if (cached && cached.length === list.length) {
-      trPaint(list, cached); $("b-tr").classList.add("on"); trOn = true; return;
+    var bank = trBank(e.p), todo = [], i;
+    for (i = 0; i < list.length; i++) {
+      if (bank[list[i].t]) trOne(list[i].el, bank[list[i].t]);
+      else todo.push(list[i]);
     }
+    if (!todo.length) { $("b-tr").textContent = "中✓"; $("b-tr").classList.add("on"); trOn = true; return; }
 
     trBusy = true;
     $("b-tr").classList.add("on");
+    var okAll = list.length - todo.length, quotaHit = false;
     try {
-      var tr = await trGet(), out = [];
-      for (var i = 0; i < list.length; i++) {
-        $("b-tr").textContent = (i + 1) + "/" + list.length;
-        try { out.push(await tr.translate(list[i].t)); } catch (x) { out.push(""); }
+      var tr = await trGet();
+      for (i = 0; i < todo.length; i++) {
+        if (!trOn) break;
+        $("b-tr").textContent = (i + 1) + "/" + todo.length;
+        var zh = "";
+        try { zh = await tr(todo[i].t); }
+        catch (x) { if (x && x.message === "quota") { quotaHit = true; break; } zh = ""; }
+        if (zh) { bank[todo[i].t] = zh; trOne(todo[i].el, zh); okAll++; }
+        if ((i + 1) % 3 === 0) { try { localStorage.setItem(TRKEY, JSON.stringify(trCache)); } catch (x) {} }
       }
-      trCache[e.p] = out;
       try { localStorage.setItem(TRKEY, JSON.stringify(trCache)); } catch (x) {}
-      trPaint(list, out);
-      $("b-tr").textContent = "中✓";
-      trOn = true;
+      $("b-tr").textContent = okAll ? "中✓" : "中";
+      trOn = !!okAll;
+      if (!okAll) $("b-tr").classList.remove("on");
+      if (quotaHit) trSay("<b>免费额度今天用完了</b>（不填邮箱每个 IP 每天 5000 字）。" +
+        "<br>已经翻出来的会留在页面上，下次只补没翻的。" +
+        "<br>想马上看：在讲义上按 <b>Alt+A</b> 用沉浸式翻译。");
     } catch (err) {
       var m = (err && err.message) || String(err);
-      trSay(m === "no-api"
-        ? "<b>这个浏览器不支持内置翻译</b>，换新版 Edge / Chrome。<br>替代：沉浸式翻译扩展，Alt+A 整页对照。"
-        : "<b>翻译没跑起来</b>：" + esc(m) + "<br>首次要下载语言包，网络不通会卡住。接加速器再试，或用沉浸式翻译。");
+      trSay((m === "no-api" || m === "not-ready")
+        ? "<b>这台浏览器没有现成的翻译引擎</b>，在线翻译这条也没通。<br>先确认加速通道连着，或用沉浸式翻译 Alt+A。"
+        : "<b>翻译没跑起来</b>：" + esc(m) + "<br>多半是网络或限流，接上加速器再试。");
       $("b-tr").textContent = "中";
+      trOn = false;
     } finally {
       trBusy = false;
     }
