@@ -47,8 +47,7 @@ code{font-family:var(--mono);font-size:.88em;background:var(--line-soft);
 .stats{font-size:13px;color:var(--muted);margin-left:4px}
 .stats b{color:var(--accent);font-size:15px}
 
-.grid{display:grid;grid-template-columns:268px minmax(0,1fr) 300px;gap:16px;
-  padding:16px;max-width:1840px;margin:0 auto;align-items:start}
+.grid{padding:16px;max-width:1840px;margin:0 auto}
 .side,.mid,.right{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
   box-shadow:var(--shadow)}
 .side{position:sticky;top:66px;max-height:calc(100vh - 84px);overflow:auto;padding:10px}
@@ -189,14 +188,34 @@ code{font-family:var(--mono);font-size:.88em;background:var(--line-soft);
 .card2 td{padding:5px 4px;border-bottom:1px solid var(--line-soft);vertical-align:top}
 .card2 td:first-child{color:var(--muted);white-space:nowrap;padding-right:10px}
 
-@media (max-width:1500px){.grid{grid-template-columns:244px minmax(0,1fr) 272px}}
+
+/* ---------- 三栏可拖动 + 单栏收起（与 panel_resize.js 配套） ---------- */
+.grid{display:flex;gap:0;align-items:flex-start}
+.side{flex:0 0 272px;width:272px;min-width:0}
+.mid{flex:1 1 auto;min-width:0}
+.right{flex:0 0 300px;width:300px;min-width:0}
+.split{flex:0 0 16px;align-self:stretch;min-height:220px;position:relative;
+  cursor:col-resize;touch-action:none;background:transparent}
+.split::before{content:"";position:absolute;top:0;bottom:0;left:50%;width:2px;margin-left:-1px;
+  background:var(--line);border-radius:2px;transition:background .15s,width .12s}
+.split::after{content:"";position:absolute;top:50%;left:50%;width:6px;height:34px;
+  margin:-17px 0 0 -3px;border-radius:3px;background:var(--line);opacity:.5;transition:.15s}
+.split:hover::before,.split.drag::before{background:var(--accent);width:3px;margin-left:-1.5px}
+.split:hover::after,.split.drag::after{background:var(--accent);opacity:1}
+.split[hidden]{display:none}
+.dragmask{position:fixed;inset:0;z-index:9999;cursor:col-resize}
+.dragmask[hidden]{display:none}
+.btn.tg{opacity:.6}
+.btn.tg.on{opacity:1;border-color:var(--accent-line);background:var(--accent-weak);color:var(--accent)}
+
 @media (max-width:1220px){
-  .grid{grid-template-columns:236px minmax(0,1fr)}
-  .right{grid-column:1 / -1;position:static;max-height:none}
+  .grid{flex-direction:column;gap:14px}
+  .side,.right{flex:0 0 auto;width:auto;position:static;max-height:none}
+  .split{display:none}
   .pane{max-height:none}
 }
 @media (max-width:880px){
-  .grid{grid-template-columns:1fr;padding:10px}
+  .grid{padding:10px}
   .side{position:static;max-height:300px}
   .wrap{padding:14px 12px 40px}
 }
@@ -388,6 +407,193 @@ code{font-family:var(--mono);font-size:.88em;background:var(--line-soft);
     }
   });
 })();
+</script>
+<script>
+/* 三栏学习台：拖动分栏改宽 + 单栏一键收起（DE / 基础预备 / Linux 共用）
+   直接内联进各页，不依赖外部文件。 */
+(function () {
+  var grid = document.querySelector("main.grid");
+  if (!grid) return;
+
+  var KEY = "dezc.panels.v1";
+  var st = {};
+  try { st = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) { st = {}; }
+  st.w = st.w || {};
+  st.h = st.h || {};
+
+  var page = location.pathname.indexOf("/fund/") >= 0 ? "fund"
+           : location.pathname.indexOf("/linux/") >= 0 ? "linux" : "de";
+
+  var panels = [].filter.call(grid.children, function (el) {
+    return el.nodeType === 1 && !el.classList.contains("split");
+  });
+  if (panels.length < 2) return;
+
+  var flexAt = -1, i;
+  for (i = 0; i < panels.length; i++) {
+    if (panels[i].classList.contains("stage") || panels[i].classList.contains("mid")) flexAt = i;
+  }
+
+  /* 与各页 CSS 的堆叠断点对齐：带右栏的两套在 1220 收成一列 */
+  var NARROW = panels.some(function (p) { return p.classList.contains("right"); }) ? 1220 : 1000;
+  var MIN = 200, MIN_DOC = 250, MAX = 1100;
+
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {}
+  }
+  function minOf(p) {
+    return (p.classList.contains("doc") || p.classList.contains("mid")) ? MIN_DOC : MIN;
+  }
+  function label(p) {
+    if (p.dataset && p.dataset.tg) return p.dataset.tg;
+    if (p.classList.contains("doc")) return "讲义";
+    if (p.classList.contains("side")) return "目录";
+    if (p.classList.contains("right")) return "笔记";
+    return "";
+  }
+  function setW(p, idx, px) {
+    p.style.flex = "0 0 " + px + "px";
+    p.style.width = px + "px";
+    st.w[page + idx] = Math.round(px);
+  }
+
+  /* ---------- 分栏条 ---------- */
+  var splits = [];
+  for (i = 0; i < panels.length - 1; i++) {
+    (function (k) {
+      var a = panels[k], b = panels[k + 1];
+      var sp = document.createElement("div");
+      sp.className = "split";
+      sp.title = "拖动调宽 · 双击复位";
+      sp.setAttribute("role", "separator");
+      sp.setAttribute("aria-orientation", "vertical");
+      grid.insertBefore(sp, b);
+      splits.push({ el: sp, a: a, b: b, k: k });
+
+      sp.addEventListener("pointerdown", function (ev) {
+        if (ev.button !== 0) return;
+        ev.preventDefault();
+        var ra = a.getBoundingClientRect().width,
+            rb = b.getBoundingClientRect().width,
+            x0 = ev.clientX,
+            flexA = k === flexAt,
+            flexB = k + 1 === flexAt,
+            minA = minOf(a), minB = minOf(b);
+        var mask = document.getElementById("dragmask");
+        if (!mask) {
+          mask = document.createElement("div");
+          mask.id = "dragmask";
+          mask.className = "dragmask";
+          document.body.appendChild(mask);
+        }
+        mask.hidden = false;
+        sp.classList.add("drag");
+        function move(e) {
+          var dx = e.clientX - x0, wa, wb;
+          if (flexA) {
+            wb = Math.max(minB, Math.min(MAX, rb - dx));
+            setW(b, k + 1, wb);
+          } else if (flexB) {
+            wa = Math.max(minA, Math.min(MAX, ra + dx));
+            setW(a, k, wa);
+          } else {
+            wa = Math.max(minA, Math.min(MAX, ra + dx));
+            wb = rb - (wa - ra);
+            if (wb < minB) { wb = minB; wa = ra + rb - wb; }
+            setW(a, k, wa); setW(b, k + 1, wb);
+          }
+        }
+        function up() {
+          mask.hidden = true;
+          sp.classList.remove("drag");
+          document.removeEventListener("pointermove", move);
+          document.removeEventListener("pointerup", up);
+          save();
+        }
+        document.addEventListener("pointermove", move);
+        document.addEventListener("pointerup", up);
+      });
+
+      sp.addEventListener("dblclick", function () {
+        [a, b].forEach(function (p) {
+          p.style.flex = ""; p.style.width = "";
+        });
+        delete st.w[page + k];
+        delete st.w[page + (k + 1)];
+        save();
+      });
+    })(i);
+  }
+
+  /* ---------- 收起按钮 ---------- */
+  var top = document.querySelector(".top");
+  if (!top) {
+    top = document.createElement("div");
+    top.className = "top";
+    document.body.insertBefore(top, document.body.firstChild);
+  }
+  var btns = [];
+  panels.forEach(function (p, idx) {
+    if (idx === flexAt) return;
+    var t = label(p);
+    if (!t) return;
+    var b = document.createElement("button");
+    b.className = "btn sm tg";
+    b.type = "button";
+    b.textContent = t;
+    b.title = "显示 / 收起「" + t + "」这一栏";
+    b.addEventListener("click", function () {
+      var hid = !p.hidden;
+      p.hidden = hid;
+      p.style.display = hid ? "none" : "";
+      st.h[page + idx] = hid;
+      save();
+      paint();
+    });
+    /* 插在顶栏靠右的位置：倒数第二个按钮前 */
+    var anchor = top.querySelector("#btn-read") || top.lastElementChild;
+    top.insertBefore(b, anchor);
+    btns.push({ b: b, p: p, idx: idx });
+  });
+
+  function paint() {
+    btns.forEach(function (o) {
+      o.b.classList.toggle("on", !o.p.hidden);
+      o.b.setAttribute("aria-pressed", o.p.hidden ? "false" : "true");
+    });
+    splits.forEach(function (s) {
+      s.el.hidden = s.a.hidden || s.b.hidden;
+    });
+  }
+
+  function layout() {
+    var wide = window.innerWidth > NARROW;
+    panels.forEach(function (p, idx) {
+      if (idx === flexAt) return;
+      var w = st.w[page + idx];
+      if (wide && w) setW(p, idx, w);
+      else if (!wide) { p.style.flex = ""; p.style.width = ""; }
+    });
+    if (!wide) {
+      /* 窄屏回到单列，全部显示 */
+      panels.forEach(function (p) { if (p.hidden) { p.hidden = false; p.style.display = ""; } });
+    } else {
+      panels.forEach(function (p, idx) {
+        var h = st.h[page + idx];
+        if (h) { p.hidden = true; p.style.display = "none"; }
+      });
+    }
+    paint();
+  }
+
+  layout();
+  var rt;
+  window.addEventListener("resize", function () {
+    clearTimeout(rt);
+    rt = setTimeout(layout, 160);
+  });
+})();
+
 </script>
 </body>
 </html>
