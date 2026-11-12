@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>学习总台 · DE Zoomcamp</title>
+<style>
+*{box-sizing:border-box}
+:root{
+  --bg:#f4f5f7; --card:#fff; --line:#e3e6ec; --line-soft:#eef0f4;
+  --text:#14171c; --muted:#657080; --muted-2:#8b94a2;
+  --c-de:#2563eb; --c-de-w:#eaf0ff;
+  --c-fund:#0f766e; --c-fund-w:#e6f4f2;
+  --c-lx:#7c3aed; --c-lx-w:#f1ecfe;
+  --ok:#0f9d58;
+  --radius:16px; --shadow:0 1px 2px rgba(16,24,40,.05),0 8px 24px rgba(16,24,40,.05);
+  --mono:"Cascadia Mono",Consolas,"Courier New",monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0d1014; --card:#15191f; --line:#262c35; --line-soft:#1f252d;
+    --text:#e8ecf2; --muted:#98a2b0; --muted-2:#79838f;
+    --c-de:#74a3ff; --c-de-w:#182233;
+    --c-fund:#4fd1c5; --c-fund-w:#122a28;
+    --c-lx:#b79cff; --c-lx-w:#221a33;
+    --ok:#43c78a;
+    --shadow:0 1px 2px rgba(0,0,0,.4);
+  }
+}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:15px/1.65 "Segoe UI","Microsoft YaHei",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1160px;margin:0 auto;padding:24px 22px 70px}
+
+/* 顶部 */
+.top{position:sticky;top:0;z-index:20;display:flex;gap:10px;align-items:center;
+  padding:10px 18px;background:var(--card);border-bottom:1px solid var(--line);flex-wrap:wrap}
+.top .ttl{font-weight:660;font-size:15.5px}
+.top .dim{color:var(--muted);font-weight:400}
+.grow{flex:1}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:9px;
+  border:1px solid var(--line);background:var(--card);color:var(--text);font:inherit;
+  font-size:13px;cursor:pointer;transition:.15s}
+.btn:hover{border-color:var(--c-de);background:var(--c-de-w)}
+.btn.sm{padding:4px 10px;font-size:12.5px}
+
+/* Hero */
+.hero{background:var(--card);border:1px solid var(--line);border-radius:20px;
+  padding:26px 26px 22px;box-shadow:var(--shadow);margin-bottom:20px}
+.hero h1{margin:0 0 8px;font-size:26px;font-weight:720;letter-spacing:-.02em}
+.hero .sub{color:var(--muted);font-size:14px;margin:0 0 20px;max-width:760px}
+.trio{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px}
+.metric{background:var(--bg);border:1px solid var(--line);border-radius:13px;padding:13px 15px}
+.metric .mv{font-size:22px;font-weight:720;letter-spacing:-.02em;display:flex;align-items:baseline;gap:4px}
+.metric .mv s{text-decoration:none;font-size:13px;font-weight:500;color:var(--muted-2)}
+.metric .ml{font-size:12px;color:var(--muted);margin-top:2px;display:flex;align-items:center;gap:5px}
+.metric .dot{width:7px;height:7px;border-radius:50%;display:inline-block}
+.bar{height:9px;background:var(--line-soft);border-radius:6px;overflow:hidden;margin:4px 0 0}
+.bar i{display:block;height:100%;border-radius:6px;transition:.5s}
+.pmeta{font-size:12.5px;color:var(--muted);margin-top:10px}
+
+/* 体系卡 */
+.sysgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;margin-bottom:26px}
+.sys{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:17px 18px 15px;box-shadow:var(--shadow);position:relative;overflow:hidden;
+  transition:.16s;display:flex;flex-direction:column}
+.sys:hover{transform:translateY(-2px);box-shadow:0 6px 22px rgba(16,24,40,.09)}
+.sys::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--c)}
+.sys .sh{display:flex;align-items:center;gap:8px;margin-bottom:3px}
+.sys .sn{font:700 11px/1 var(--mono);color:var(--c);background:var(--cw);
+  border-radius:6px;padding:4px 7px}
+.sys h2{margin:0;font-size:16px;font-weight:680;flex:1}
+.sys .sd{font-size:12.7px;color:var(--muted);margin:4px 0 12px;line-height:1.55;flex:1}
+.sys .sbar{height:7px;background:var(--line-soft);border-radius:5px;overflow:hidden}
+.sys .sbar i{display:block;height:100%;background:var(--c);border-radius:5px;transition:.5s}
+.sys .smeta{font-size:12px;color:var(--muted-2);margin-top:6px;display:flex;gap:8px}
+.sys .smeta b{color:var(--c);font-weight:700}
+.sys .sacts{display:flex;gap:7px;margin-top:13px;flex-wrap:wrap}
+.sys .sacts a{padding:5px 11px;border-radius:8px;border:1px solid var(--line);
+  font-size:12.5px;background:var(--card);transition:.13s}
+.sys .sacts a:hover{border-color:var(--c);background:var(--cw);color:var(--c)}
+.sys .sacts a.main{background:var(--c);border-color:var(--c);color:#fff}
+.sys .sacts a.main:hover{filter:brightness(1.08);color:#fff}
+
+/* 分区标题 */
+.sec{display:flex;align-items:center;gap:10px;margin:30px 0 13px;font-size:17px;font-weight:680}
+.sec .ln{flex:1;height:1px;background:var(--line)}
+.sec .hint{font-size:12.5px;color:var(--muted-2);font-weight:400}
+
+/* 路径 */
+.path{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow);overflow:hidden}
+.row{display:grid;grid-template-columns:78px minmax(0,1fr) 96px 150px;gap:12px;
+  padding:13px 18px;border-bottom:1px solid var(--line-soft);align-items:center;
+  transition:.12s}
+.row:last-child{border-bottom:0}
+.row:hover{background:var(--line-soft)}
+.row .st{font-size:12px;font-weight:700;color:var(--muted);font-family:var(--mono)}
+.row .rt{font-size:13.8px;font-weight:600}
+.row .rd{font-size:12.4px;color:var(--muted);margin-top:1px;line-height:1.5}
+.row .rw{font-size:12px;color:var(--muted-2);text-align:right}
+.row .ra{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
+.row .ra a{font-size:12px;padding:3px 9px;border:1px solid var(--line);border-radius:7px;white-space:nowrap}
+.row .ra a:hover{border-color:var(--c-de);color:var(--c-de)}
+.row.now{background:var(--c-de-w)}
+.row.now .st{color:var(--c-de)}
+.row .pre{font-size:11.5px;color:var(--c-fund);display:block;margin-top:2px}
+
+/* 基础清单 */
+.basegrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.bcard{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:15px 16px 14px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.bcard::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--c-fund)}
+.bh{display:flex;align-items:baseline;gap:9px;margin-bottom:2px}
+.bh .bn{font:700 11px/1 var(--mono);color:var(--c-fund);background:var(--c-fund-w);
+  border-radius:6px;padding:4px 7px}
+.bh b{font-size:14.5px;font-weight:680}
+.bh .bc{margin-left:auto;font-size:12px;color:var(--muted-2);font-family:var(--mono)}
+.bd{font-size:12.4px;color:var(--muted);margin:6px 0 11px;line-height:1.55}
+.bchips{display:flex;flex-wrap:wrap;gap:6px}
+.bchips a{display:inline-flex;align-items:center;gap:6px;padding:4px 9px 4px 5px;
+  border:1px solid var(--line);border-radius:8px;font-size:12.3px;color:var(--text);
+  background:var(--card);transition:.13s}
+.bchips a:hover{border-color:var(--c-fund);background:var(--c-fund-w);color:var(--c-fund)}
+.bchips a i{font:700 10.5px/1 var(--mono);font-style:normal;color:var(--muted-2);
+  background:var(--line-soft);border-radius:5px;padding:3px 5px}
+.bchips a.done{border-color:var(--c-fund);color:var(--c-fund);background:var(--c-fund-w)}
+.bchips a.done i{background:var(--c-fund);color:#fff}
+
+/* 工具 */
+.tools{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+.tool{background:var(--card);border:1px solid var(--line);border-radius:13px;
+  padding:13px 15px;box-shadow:var(--shadow);transition:.15s}
+.tool:hover{border-color:var(--c-de);transform:translateY(-1px)}
+.tool b{display:block;font-size:13.6px;margin-bottom:2px}
+.tool span{font-size:12.2px;color:var(--muted);line-height:1.5}
+
+@media (max-width:980px){
+  .trio{grid-template-columns:1fr}
+  .sysgrid{grid-template-columns:1fr}
+  .basegrid{grid-template-columns:1fr}
+  .row{grid-template-columns:64px minmax(0,1fr);gap:8px}
+  .row .rw{display:none}
+  .row .ra{grid-column:2;justify-content:flex-start;margin-top:4px}
+}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <div class="ttl">学习总台 <span class="dim">· Data Engineering Zoomcamp</span></div>
+  <div class="grow"></div>
+  <a class="btn sm" href="#base">基础清单</a>
+  <a class="btn sm" href="daily.html">今日一条</a>
+  <a class="btn sm" href="read.html">竖屏讲义</a>
+  <a class="btn sm" href="troubleshoot.html">故障手册</a>
+</div>
+
+<div class="wrap">
+
+  <div class="hero">
+    <h1>三个体系，一条主线</h1>
+    <p class="sub">先花两周把基础补齐 → 按 7 个模块把 DE 打通 → Linux 全程并行。
+      点任何一块都进三栏学习台：左边目录、中间内容、右边笔记，进度各自独立、可以互跳。</p>
+
+    <div class="trio">
+      <div class="metric">
+        <div class="mv"><span id="m-de">0</span><s>/ 63 集</s></div>
+        <div class="ml"><i class="dot" style="background:var(--c-de)"></i>DE 主课 · 已看完视频</div>
+        <div class="bar"><i id="b-de" style="background:var(--c-de)"></i></div>
+      </div>
+      <div class="metric">
+        <div class="mv"><span id="m-fund">0</span><s>/ 32 节</s></div>
+        <div class="ml"><i class="dot" style="background:var(--c-fund)"></i>基础预备 · 已掌握</div>
+        <div class="bar"><i id="b-fund" style="background:var(--c-fund)"></i></div>
+      </div>
+      <div class="metric">
+        <div class="mv"><span id="m-lx">0</span><s>/ 37 章</s></div>
+        <div class="ml"><i class="dot" style="background:var(--c-lx)"></i>Linux 体系 · 已完成</div>
+        <div class="bar"><i id="b-lx" style="background:var(--c-lx)"></i></div>
+      </div>
+    </div>
+
+    <div class="bar" style="height:11px"><i id="b-all"></i></div>
+    <div class="pmeta" id="all-meta">合计 0 / 132 项 · 进度记录在各页面自己的浏览器里</div>
+  </div>
+
+  <div class="sysgrid">
+    <div class="sys" style="--c:var(--c-de);--cw:var(--c-de-w)">
+      <div class="sh"><span class="sn">01</span><h2>DE 主课</h2></div>
+      <div class="sd">9 周 · 7 个模块 · 63 集视频 + 7 份作业。Docker → 编排 → BigQuery → dbt → Spark → Kafka。</div>
+      <div class="sbar"><i id="s-de"></i></div>
+      <div class="smeta"><b id="s-de-n">0</b> / 63 集已看完</div>
+      <div class="sacts">
+        <a class="main" href="player.html">▶ 进学习台</a>
+        <a href="index.html">看板</a>
+        <a href="player.html?pane=hw">作业</a>
+      </div>
+    </div>
+
+    <div class="sys" style="--c:var(--c-fund);--cw:var(--c-fund-w)">
+      <div class="sh"><span class="sn">02</span><h2>基础预备</h2></div>
+      <div class="sd">32 节 · 181 张知识卡，补的是「从会写语法到能处理真实数据」那段。你有 Python 和 MySQL，这块是精准补缺。</div>
+      <div class="sbar"><i id="s-fund"></i></div>
+      <div class="smeta"><b id="s-fund-n">0</b> / 32 节已掌握</div>
+      <div class="sacts">
+        <a class="main" href="fund/player.html">▶ 进学习台</a>
+        <a href="fund/index.html">自测</a>
+      </div>
+    </div>
+
+    <div class="sys" style="--c:var(--c-lx);--cw:var(--c-lx-w)">
+      <div class="sh"><span class="sn">03</span><h2>Linux 体系</h2></div>
+      <div class="sd">《Linux 命令行大全》全书 37 章 · 187 张命令卡，配 Rocky Linux 虚拟机，每章标了配合 DE 哪个模块。</div>
+      <div class="sbar"><i id="s-lx"></i></div>
+      <div class="smeta"><b id="s-lx-n">0</b> / 37 章已完成</div>
+      <div class="sacts">
+        <a class="main" href="linux/player.html">▶ 进学习台</a>
+        <a href="linux/index.html">看板</a>
+        <a href="linux/cheatsheet.html">速查</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">学习路径<span class="ln"></span><span class="hint">按这个顺序走，别跳</span></div>
+  <div class="path" id="path"></div>
+
+  <div class="sec" id="base">要补的基础 · 32 分块<span class="ln"></span><span class="hint">点任意一节，直接进学习台对应位置</span></div>
+  <div class="basegrid">
+<div class="bcard"><div class="bh"><span class="bn">第一块</span><b>编程与数据操作</b><span class="bc">8 节</span></div><p class="bd">把 Python 从「会写语法」推到「能处理一批数据」。这一块不学新语言，学的是文件、接口、日志、表格这些真活儿。</p><div class="bchips"><a href="fund/player.html?n=1" data-n="1"><i>01</i>虚拟环境与包管理</a><a href="fund/player.html?n=2" data-n="2"><i>02</i>文件、路径与编码</a><a href="fund/player.html?n=3" data-n="3"><i>03</i>异常处理与日志</a><a href="fund/player.html?n=4" data-n="4"><i>04</i>调 API：requests 与分页</a><a href="fund/player.html?n=5" data-n="5"><i>05</i>数据格式：CSV / JSON / Parquet</a><a href="fund/player.html?n=6" data-n="6"><i>06</i>pandas 入门：从表格到结论</a><a href="fund/player.html?n=7" data-n="7"><i>07</i>pandas 进阶：连接、透视与内存</a><a href="fund/player.html?n=8" data-n="8"><i>08</i>把脚本写成人能维护的样子</a></div></div>
+<div class="bcard"><div class="bh"><span class="bn">第二块</span><b>SQL 进阶</b><span class="bc">10 节</span></div><p class="bd">你有 MySQL 基础，缺的是分析型写法：窗口函数、CTE、执行计划，还有 NULL 和时区这两个坑。</p><div class="bchips"><a href="fund/player.html?n=9" data-n="9"><i>09</i>OLTP 与 OLAP：两种 SQL 的差别</a><a href="fund/player.html?n=10" data-n="10"><i>10</i>JOIN 全解与三个经典陷阱</a><a href="fund/player.html?n=11" data-n="11"><i>11</i>聚合与 GROUP BY 的完整语义</a><a href="fund/player.html?n=12" data-n="12"><i>12</i>子查询与 CTE：把复杂 SQL 拆开</a><a href="fund/player.html?n=13" data-n="13"><i>13</i>窗口函数：分析型 SQL 的分水岭</a><a href="fund/player.html?n=14" data-n="14"><i>14</i>NULL 与三值逻辑：最阴的坑</a><a href="fund/player.html?n=15" data-n="15"><i>15</i>索引与执行计划</a><a href="fund/player.html?n=16" data-n="16"><i>16</i>建表、写入与事务</a><a href="fund/player.html?n=17" data-n="17"><i>17</i>日期时间与时区</a><a href="fund/player.html?n=18" data-n="18"><i>18</i>用 SQL 做数据质量体检</a></div></div>
+<div class="bcard"><div class="bh"><span class="bn">第三块</span><b>工程工具链</b><span class="bc">6 节</span></div><p class="bd">Git、Docker、命令行、配置文件——课程第一天就要用，卡在这里会一直卡。</p><div class="bchips"><a href="fund/player.html?n=19" data-n="19"><i>19</i>Git 最小可用集</a><a href="fund/player.html?n=20" data-n="20"><i>20</i>Docker 心智模型</a><a href="fund/player.html?n=21" data-n="21"><i>21</i>Dockerfile 与 Compose</a><a href="fund/player.html?n=22" data-n="22"><i>22</i>命令行里的数据活</a><a href="fund/player.html?n=23" data-n="23"><i>23</i>YAML 与配置文件</a><a href="fund/player.html?n=24" data-n="24"><i>24</i>VS Code、Jupyter 与调试</a></div></div>
+<div class="bcard"><div class="bh"><span class="bn">第四块</span><b>数据工程概念</b><span class="bc">8 节</span></div><p class="bd">工具天天换，概念不变。先建立数据流、建模、分层、幂等这套词汇，看视频才不会懵。</p><div class="bchips"><a href="fund/player.html?n=25" data-n="25"><i>25</i>数据工程到底在干什么</a><a href="fund/player.html?n=26" data-n="26"><i>26</i>数据建模：从三范式到星型</a><a href="fund/player.html?n=27" data-n="27"><i>27</i>分层：为什么数据要分好几层</a><a href="fund/player.html?n=28" data-n="28"><i>28</i>分区、文件布局与列式存储</a><a href="fund/player.html?n=29" data-n="29"><i>29</i>幂等、增量与重跑</a><a href="fund/player.html?n=30" data-n="30"><i>30</i>数据质量与数据契约</a><a href="fund/player.html?n=31" data-n="31"><i>31</i>云、成本与权限</a><a href="fund/player.html?n=32" data-n="32"><i>32</i>编排与调度</a></div></div>
+  </div>
+
+  <div class="sec">常用入口<span class="ln"></span></div>
+  <div class="tools">
+    <a class="tool" href="daily.html"><b>今日一条知识</b><span>116 条内置，每天固定换一条，命令可直接复制</span></a>
+    <a class="tool" href="read.html"><b>竖屏讲义</b><span>纯净阅读版，拖到副屏，字号可调</span></a>
+    <a class="tool" href="github-desktop.html"><b>GitHub Desktop 手册</b><span>从零把作业推到仓库</span></a>
+    <a class="tool" href="translate.html"><b>翻译与外挂字幕</b><span>沉浸式翻译正版怎么配</span></a>
+    <a class="tool" href="troubleshoot.html"><b>加速器故障手册</b><span>连不上 GitHub 时按这个查</span></a>
+    <a class="tool" href="linux/cheatsheet.html"><b>命令速查</b><span>187 条，可搜可筛、一键复制</span></a>
+  </div>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var $ = function (id) { return document.getElementById(id); };
+  function read(k, d) {
+    try { var v = JSON.parse(localStorage.getItem(k)); return v || d; } catch (e) { return d; }
+  }
+
+  var DE = read("hub.de", { done: 0, total: 63 });
+  var FUND = read("hub.fund", { done: 0, total: 32 });
+  var LX = read("hub.linux", { done: 0, total: 37 });
+
+  /* 兜底：player 没打开过时，直接数各页面自己的 done 记录 */
+  try {
+    var fd = JSON.parse(localStorage.getItem("fund.done.v1") || "{}");
+    var nf = Object.keys(fd).filter(function (k) { return fd[k]; }).length;
+    if (nf > (FUND.done || 0)) FUND = { done: nf, total: 32 };
+  } catch (e) {}
+  try {
+    var ld = JSON.parse(localStorage.getItem("linux.done.v1") || "{}");
+    var nl = Object.keys(ld).filter(function (k) { return ld[k]; }).length;
+    if (nl > (LX.done || 0)) LX = { done: nl, total: 37 };
+  } catch (e) {}
+  try {
+    var dd = JSON.parse(localStorage.getItem("dezc.progress.v1") || "{}");
+    var nd = Object.keys(dd).filter(function (k) { return dd[k]; }).length;
+    if (nd > (DE.done || 0)) DE = { done: nd, total: 63 };
+  } catch (e) {}
+
+  function paint(prefix, o) {
+    var n = Math.min(o.done || 0, o.total || 1);
+    var pct = Math.round(n / (o.total || 1) * 100);
+    var b = $(prefix === "de" ? "b-de" : prefix === "fund" ? "b-fund" : "b-lx");
+    var s = $(prefix === "de" ? "s-de" : prefix === "fund" ? "s-fund" : "s-lx");
+    var m = $(prefix === "de" ? "m-de" : prefix === "fund" ? "m-fund" : "m-lx");
+    var sn = $(prefix === "de" ? "s-de-n" : prefix === "fund" ? "s-fund-n" : "s-lx-n");
+    if (b) b.style.width = pct + "%";
+    if (s) s.style.width = pct + "%";
+    if (m) m.textContent = n;
+    if (sn) sn.textContent = n;
+    return { n: n, total: o.total || 0 };
+  }
+
+  var a = paint("de", DE), b2 = paint("fund", FUND), c = paint("lx", LX);
+  var tot = a.n + b2.n + c.n, all = a.total + b2.total + c.total;
+  $("b-all").style.width = Math.round(tot / all * 100) + "%";
+  $("all-meta").textContent = "合计 " + tot + " / " + all + " 项 · 进度记录在各页面自己的浏览器里";
+
+  /* 学习路径：[阶段, 标题, 说明, 周期, 先补什么, 链接] */
+  var STEPS = [
+    ["第 0 步", "补齐基础", "基础预备 32 节。重点第 1、2 块，第 3、4 块可以边做边补。", "10–14 天", "",
+      [["开始", "fund/player.html"]]],
+    ["模块 01", "容器与基础设施即代码", "Docker 跑 Postgres、Python 摄取、Terraform 建 GCP 资源。", "2 周",
+      "基础第 20、21 节 · Linux 第 37 章（软件包）", [["学习台", "player.html"], ["看板", "index.html"]]],
+    ["模块 02", "工作流编排", "Kestra 定义 flow、依赖、调度与回填。", "1 周",
+      "基础第 32 节 · Linux 第 24–26 章（循环与脚本）", [["学习台", "player.html"]]],
+    ["模块 03", "数据仓库", "BigQuery 分区、聚簇、外部表，用最少扫描量查最多数据。", "1 周",
+      "基础第 9、15、28 节", [["学习台", "player.html"]]],
+    ["模块 04", "分析工程", "dbt 建模、测试、文档；星型模型落到 SQL。", "1 周",
+      "基础第 26、27、30 节 · Linux 第 20 章（正则）", [["学习台", "player.html"]]],
+    ["模块 05", "数据平台", "Bruin 串起摄取、转换、质量，部署到 BigQuery。", "1 周",
+      "基础第 25、29、31 节", [["学习台", "player.html"]]],
+    ["模块 06", "批处理", "Spark DataFrame 与 Spark SQL，groupBy 和 join 的内部机制。", "1 周",
+      "基础第 6、7、28 节", [["学习台", "player.html"]]],
+    ["模块 07", "流处理", "Kafka、Kafka Streams、Avro schema。", "1 周",
+      "基础第 5 节（JSON / Avro 格式）", [["学习台", "player.html"]]],
+    ["毕业项目", "端到端管道", "自己的数据源 → 仓库 → dbt → 仪表盘，写清 README 与架构图。", "2–3 周", "",
+      [["项目要求", "https://github.com/DataTalksClub/data-engineering-zoomcamp/tree/main/projects"]]]
+  ];
+
+  /* 判断当前阶段：基础没做完先在 0，否则按 DE 进度粗估 */
+  var curIdx = 0;
+  if (a.n > 0 || (b2.n >= 24 && c.n >= 20)) {
+    var per = a.total / 7;
+    curIdx = 1 + Math.min(7, Math.floor(a.n / per));
+    if (a.n >= a.total) curIdx = 8;
+  }
+
+  var html = "";
+  STEPS.forEach(function (s, i) {
+    var now = i === curIdx ? " now" : "";
+    html += '<div class="row' + now + '">' +
+      '<div class="st">' + s[0] + '</div>' +
+      '<div><div class="rt">' + s[1] + '</div><div class="rd">' + s[2] + '</div>' +
+      (s[4] ? '<span class="pre">先补：' + s[4] + '</span>' : "") + '</div>' +
+      '<div class="rw">' + s[3] + '</div>' +
+      '<div class="ra">' + s[5].map(function (x) {
+        var ext = /^https?:/.test(x[1]) ? ' target="_blank" rel="noopener"' : "";
+        return '<a href="' + x[1] + '"' + ext + '>' + x[0] + ' →</a>';
+      }).join("") + '</div></div>';
+  });
+  $("path").innerHTML = html;
+
+  /* 基础清单：把已掌握的节标出来 */
+  try {
+    var fd2 = JSON.parse(localStorage.getItem("fund.done.v1") || "{}");
+    Array.prototype.forEach.call(document.querySelectorAll(".bchips a"), function (a) {
+      var n = a.getAttribute("data-n");
+      if (fd2[n]) { a.classList.add("done"); a.querySelector("i").textContent = "✓"; }
+    });
+  } catch (e) {}
+})();
+</script>
+</body>
+</html>
