@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>衔接地图 · 每个 DE 模块要补哪几节</title>
+<style>
+*{box-sizing:border-box}
+:root{
+  --bg:#f4f5f7; --card:#fff; --line:#e3e6ec; --line-soft:#eef0f4;
+  --text:#14171c; --muted:#657080; --muted-2:#8b94a2;
+  --c-de:#2563eb; --c-de-w:#eaf0ff;
+  --c-fund:#0f766e; --c-fund-w:#e6f4f2;
+  --c-lx:#7c3aed; --c-lx-w:#f1ecfe;
+  --warn:#b45309; --warn-w:#fff6e8;
+  --radius:15px; --shadow:0 1px 2px rgba(16,24,40,.05),0 8px 24px rgba(16,24,40,.05);
+  --mono:"Cascadia Mono",Consolas,"Courier New",monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0d1014; --card:#15191f; --line:#262c35; --line-soft:#1f252d;
+    --text:#e8ecf2; --muted:#98a2b0; --muted-2:#79838f;
+    --c-de:#74a3ff; --c-de-w:#182233;
+    --c-fund:#4fd1c5; --c-fund-w:#122a28;
+    --c-lx:#b79cff; --c-lx-w:#221a33;
+    --warn:#ffb454; --warn-w:#2a2117;
+    --shadow:0 1px 2px rgba(0,0,0,.4);
+  }
+}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:15px/1.68 "Segoe UI","Microsoft YaHei",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+.top{position:sticky;top:0;z-index:20;display:flex;gap:9px;align-items:center;
+  padding:10px 18px;background:var(--card);border-bottom:1px solid var(--line);flex-wrap:wrap}
+.top .ttl{font-weight:660;font-size:15.5px}
+.top .ttl .dim{color:var(--muted);font-weight:400}
+.grow{flex:1}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:9px;
+  border:1px solid var(--line);background:var(--card);color:var(--text);font-size:12.8px}
+.btn:hover{border-color:var(--c-de);background:var(--c-de-w)}
+.wrap{max-width:1050px;margin:0 auto;padding:24px 22px 80px}
+
+.hero{background:var(--card);border:1px solid var(--line);border-radius:20px;
+  padding:26px 26px 22px;box-shadow:var(--shadow);margin-bottom:22px}
+.hero h1{margin:0 0 8px;font-size:25px;font-weight:720;letter-spacing:-.02em}
+.hero p{margin:0 0 14px;color:var(--muted);font-size:14px;max-width:780px}
+.hero p b{color:var(--text)}
+
+.speed{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px}
+.sp{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.sp .k{font:700 11px/1 var(--mono);color:var(--c-fund);background:var(--c-fund-w);
+  border-radius:5px;padding:3px 6px;display:inline-block;margin-bottom:7px}
+.sp b{display:block;font-size:13.5px;margin-bottom:3px}
+.sp span{font-size:12.4px;color:var(--muted);line-height:1.55}
+
+h2.sec{display:flex;align-items:center;gap:10px;margin:30px 0 14px;font-size:17px;font-weight:680}
+h2.sec .ln{flex:1;height:1px;background:var(--line)}
+h2.sec .hint{font-size:12.5px;color:var(--muted-2);font-weight:400}
+
+.mod{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow);margin-bottom:13px;overflow:hidden}
+.mh{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--line-soft)}
+.mh .no{font:700 11px/1 var(--mono);color:var(--c-de);background:var(--c-de-w);
+  border-radius:6px;padding:5px 8px}
+.mh h3{margin:0;font-size:15.5px;font-weight:680;flex:1}
+.mh .tag{font-size:11.5px;color:var(--muted-2);border:1px solid var(--line);
+  border-radius:6px;padding:2px 7px;white-space:nowrap}
+.mb{padding:14px 18px 16px;display:grid;grid-template-columns:1fr 1fr;gap:14px 22px}
+.cell .lb{font-size:11.5px;color:var(--muted-2);letter-spacing:.02em;margin-bottom:5px}
+.cell p{margin:0;font-size:13.2px;line-height:1.6}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips a{display:inline-flex;align-items:center;gap:5px;padding:3px 9px 3px 4px;
+  border:1px solid var(--line);border-radius:8px;font-size:12.3px;background:var(--card)}
+.chips a:hover{border-color:var(--c-fund);background:var(--c-fund-w);color:var(--c-fund)}
+.chips a i{font:700 10.5px/1 var(--mono);font-style:normal;color:var(--muted-2);
+  background:var(--line-soft);border-radius:5px;padding:3px 5px}
+.stuck{background:var(--warn-w);border:1px solid var(--warn-w);border-radius:10px;
+  padding:10px 12px;font-size:12.7px;line-height:1.6}
+.stuck b{color:var(--warn)}
+.full{grid-column:1 / -1}
+
+.foot{margin-top:26px;font-size:13px;color:var(--muted);line-height:1.8;
+  border-top:1px solid var(--line);padding-top:16px}
+.foot b{color:var(--text)}
+@media (max-width:760px){
+  .speed{grid-template-columns:1fr}
+  .mb{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <a class="btn" href="hub.html">← 总台</a>
+  <div class="ttl">衔接地图 <span class="dim">· DE 模块 ↔ 基础节</span></div>
+  <div class="grow"></div>
+  <a class="btn" href="player.html">DE 学习台</a>
+  <a class="btn" href="fund/index.html">基础预备</a>
+  <a class="btn" href="linux/index.html">Linux</a>
+</div>
+
+<div class="wrap">
+
+  <div class="hero">
+    <h1>不用把 32 节学完，按模块对着补</h1>
+    <p>你不是「零基础」，是<b>会语法但没做过工程</b>。所以补法不是从头刷课，而是：
+      每个模块开课前，先花 1–2 小时把这张表上标出来的那几节过一遍，剩下的遇到再回查。
+      每张卡片右边的数字就是基础预备的节号，点下去直接跳到那一节。</p>
+
+    <div class="speed">
+      <div class="sp">
+        <span class="k">最省力 · 3 天</span>
+        <b>只补到能开模块 1</b>
+        <span>第 20、21 节（Docker + compose）+ 第 8 节（脚本写成 CLI）+ 第 16 节（建表与写入）。够跑通第一个管道。</span>
+      </div>
+      <div class="sp">
+        <span class="k">稳一点 · 一周</span>
+        <b>上面 + SQL 分析型那一段</b>
+        <span>加第 10、11、13、14 节（JOIN、聚合、窗口、NULL）。模块 3 之后全靠这几节撑着。</span>
+      </div>
+      <div class="sp">
+        <span class="k">完整 · 两周</span>
+        <b>32 节按四块走完</b>
+        <span>再把概念块（25–32）通读一遍。不追求记住，混个脸熟，看视频不懵就够了。</span>
+      </div>
+    </div>
+  </div>
+
+  <h2 class="sec">七个模块，各自要衔接什么<span class="ln"></span><span class="hint">按开课顺序排</span></h2>
+
+  <div class="mod">
+    <div class="mh"><span class="no">01</span><h3>容器与基础设施即代码</h3><span class="tag">Docker · Postgres · Terraform</span></div>
+    <div class="mb">
+      <div class="cell"><div class="lb">这一模块你会做</div>
+        <p>用 Docker 起 Postgres，用 Python 脚本把 taxi 数据灌进去，再用 Terraform 在 GCP 上建 bucket 和 BigQuery 数据集。</p></div>
+      <div class="cell"><div class="lb">先补这几节</div>
+        <div class="chips">
+          <a href="fund/player.html?n=20"><i>20</i>Docker 心智模型</a>
+          <a href="fund/player.html?n=21"><i>21</i>Dockerfile 与 Compose</a>
+          <a href="fund/player.html?n=8"><i>08</i>脚本写成人能维护的样子</a>
+          <a href="fund/player.html?n=16"><i>16</i>建表、写入与事务</a>
+        </div></div>
+      <div class="cell full"><div class="stuck"><b>没补会卡在：</b>容器起来了但 pgAdmin 连不上——因为连的是 <code>localhost:5432</code> 而不是宿主机映射出去的端口；
+        两个容器互相访问时写了 <code>localhost</code>（应该写 compose 里的服务名）；数据没挂 volume，容器一删全没；GCP 项目没开结算，Terraform 建不动。</div></div>
+      <div class="cell full"><div class="lb">最小可用（两小时能拿下）</div>
+        <p><code>docker run -d --name pg -e POSTGRES_PASSWORD=root -p 5433:5432 postgres:16</code> → <code>docker compose up -d</code> → 用 <code>psql</code> 连上去建一张表、<code>COPY</code> 进一个 CSV。这三件事会了，模块 1 的视频就能跟着做。</p></div>
+    </div>
+  </div>
+
+  <div class="mod">
+    <div class="mh"><span class="no">02</span><h3>工作流编排</h3><span class="tag">Kestra</span></div>
+    <div class="mb">
+      <div class="cell"><div class="lb">这一模块你会做</div>
+        <p>把「下载数据 → 转格式 → 灌库」写成 flow，加调度、加依赖、跑一次回填。</p></div>
+      <div class="cell"><div class="lb">先补这几节</div>
+        <div class="chips">
+          <a href="fund/player.html?n=23"><i>23</i>YAML 与配置文件</a>
+          <a href="fund/player.html?n=32"><i>32</i>编排与调度</a>
+          <a href="fund/player.html?n=8"><i>08</i>脚本写成人能维护的样子</a>
+        </div></div>
+      <div class="cell full"><div class="stuck"><b>没补会卡在：</b>YAML 缩进错一个空格整份 flow 起不来；<code>{{ }}</code> 变量插值和 shell 的 <code>$</code> 混着写；
+        调度时间差 8 小时（容器默认 UTC），以为是 bug 其实是时区；回填时不知道哪天的数据已经跑过。</div></div>
+      <div class="cell full"><div class="lb">最小可用</div>
+        <p>能写一个含 3 个 task 的 flow，先用「手动执行」跑通，确认每步产物落盘，再挂 <code>schedule</code>。别一上来就调 cron。</p></div>
+    </div>
+  </div>
+
+  <div class="mod">
+    <div class="mh"><span class="no">03</span><h3>数据仓库</h3><span class="tag">BigQuery</span></div>
+    <div class="mb">
+      <div class="cell"><div class="lb">这一模块你会做</div>
+        <p>建分区表 + 外部表，用最少的扫描量查最多的数据，理解为什么列式存储快。</p></div>
+      <div class="cell"><div class="lb">先补这几节</div>
+        <div class="chips">
+          <a href="fund/player.html?n=28"><i>28</i>分区、文件布局与列式存储</a>
+          <a href="fund/player.html?n=13"><i>13</i>窗口函数</a>
+          <a href="fund/player.html?n=15"><i>15</i>索引与执行计划</a>
+          <a href="fund/player.html?n=14"><i>14</i>NULL 与三值逻辑</a>
+        </div></div>
+      <div class="cell full"><div class="stuck"><b>没补会卡在：</b>一次 <code>SELECT *</code> 把免费额度烧掉一大截；分区字段用 <code>STRING</code> 存日期，导致分区裁剪失效；
+        <code>COUNT(字段)</code> 和 <code>COUNT(*)</code> 结果对不上（NULL 在作怪）；忘记加 <code>WHERE</code> 限制分区。</div></div>
+      <div class="cell full"><div class="lb">最小可用</div>
+        <p>会写 <code>CREATE TABLE ... PARTITION BY DATE(tpep_pickup_datetime) AS SELECT ...</code>，并且知道「先看扫描量预估再点运行」。</p></div>
+    </div>
+  </div>
+
+  <div class="mod">
+    <div class="mh"><span class="no">04</span><h3>分析工程</h3><span class="tag">dbt</span></div>
+    <div class="mb">
+      <div class="cell"><div class="lb">这一模块你会做</div>
+        <p>把一堆 SQL 拆成 staging / core / mart 三层模型，加测试、加文档、生成血缘图。</p></div>
+      <div class="cell"><div class="lb">先补这几节</div>
+        <div class="chips">
+          <a href="fund/player.html?n=12"><i>12</i>子查询与 CTE</a>
+          <a href="fund/player.html?n=26"><i>26</i>从三范式到星型</a>
+          <a href="fund/player.html?n=27"><i>27</i>分层：为什么分好几层</a>
+          <a href="fund/player.html?n=23"><i>23</i>YAML 与配置文件</a>
+        </div></div>
+      <div class="cell full"><div class="stuck"><b>没补会卡在：</b>不写 CTE，一个模型套五层子查询，自己都读不懂；不知道 <code>ref()</code> 是在建依赖图，
+        还在用表名硬连；测试挂了分不清是数据脏还是 SQL 逻辑错。</div></div>
+      <div class="cell full"><div class="lb">最小可用</div>
+        <p>三层各写一张模型（stg_ → int_ → fct_/dim_），中间全用 CTE，跑 <code>dbt build</code> 能过。</p></div>
+    </div>
+  </div>
+
+  <div class="mod">
+    <div class="mh"><span class="no">05</span><h3>数据平台</h3><span class="tag">Bruin</span></div>
+    <div class="mb">
+      <div class="cell"><div class="lb">这一模块你会做</div>
+        <p>把摄取、转换、质量检查串成一条能重复跑的 pipeline，部署到 BigQuery 上。</p></div>
+      <div class="cell"><div class="lb">先补这几节</div>
+        <div class="chips">
+          <a href="fund/player.html?n=1"><i>01</i>虚拟环境与包管理</a>
+          <a href="fund/player.html?n=2"><i>02</i>文件、路径与编码</a>
+          <a href="fund/player.html?n=30"><i>30</i>数据质量与数据契约</a>
+        </div></div>
+      <div class="cell full"><div class="stuck"><b>没补会卡在：</b>Python 项目结构乱，import 找不到模块；路径写死成 <code>C:\Users\...</code> 换台机器就崩；
+        质量检查只写了「不为空」，不知道要检查唯一性、范围、及时性。</div></div>
+      <div class="cell full"><div class="lb">最小可用</div>
+        <p>一个项目里能跑通 ingest → quality → publish 三段，路径全用相对路径或配置项。</p></div>
+    </div>
+  </div>
+
+  <div class="mod">
+    <div class="mh"><span class="no">06</span><h3>批处理</h3><span class="tag">Spark</span></div>
+    <div class="mb">
+      <div class="cell"><div class="lb">这一模块你会做</div>
+        <p>用 DataFrame 和 Spark SQL 处理百万级数据，理解 groupBy、join 背后的 shuffle。</p></div>
+      <div class="cell"><div class="lb">先补这几节</div>
+        <div class="chips">
+          <a href="fund/player.html?n=6"><i>06</i>pandas 入门</a>
+          <a href="fund/player.html?n=7"><i>07</i>pandas 进阶：连接与内存</a>
+          <a href="fund/player.html?n=28"><i>28</i>分区、文件布局与列式存储</a>
+        </div></div>
+      <div class="cell full"><div class="stuck"><b>没补会卡在：</b>Windows 上跑 Spark 缺 Hadoop 的 <code>winutils</code>（或用 WSL 绕开）；driver 内存爆了不知道要调 <code>spark.driver.memory</code>；
+        把 pandas 的写法硬套 Spark，忘了它是惰性求值，报错行号和出错地方对不上。</div></div>
+      <div class="cell full"><div class="lb">最小可用</div>
+        <p>读 parquet → <code>groupBy</code> 聚合 → 和一个维表 <code>join</code> → 写回 parquet，全程不 collect 到本地。</p></div>
+    </div>
+  </div>
+
+  <div class="mod">
+    <div class="mh"><span class="no">07</span><h3>流处理</h3><span class="tag">Kafka · Kafka Streams</span></div>
+    <div class="mb">
+      <div class="cell"><div class="lb">这一模块你会做</div>
+        <p>起 Kafka，写 producer / consumer，用 Avro 定义 schema，做一次实时聚合。</p></div>
+      <div class="cell"><div class="lb">先补这几节</div>
+        <div class="chips">
+          <a href="fund/player.html?n=5"><i>05</i>CSV / JSON / Parquet</a>
+          <a href="fund/player.html?n=20"><i>20</i>Docker 心智模型</a>
+          <a href="fund/player.html?n=29"><i>29</i>幂等、增量与重跑</a>
+        </div></div>
+      <div class="cell full"><div class="stuck"><b>没补会卡在：</b>consumer 连不上——<code>bootstrap.servers</code> 在容器里写 <code>localhost</code>；
+        消息体格式前后不一致，消费端反序列化直接崩；重复消费不做幂等，重跑一次数据翻倍。</div></div>
+      <div class="cell full"><div class="lb">最小可用</div>
+        <p>producer 往 topic 发 JSON，consumer 打出来；能看懂 <code>advertised.listeners</code> 为什么要配。</p></div>
+    </div>
+  </div>
+
+  <div class="mod">
+    <div class="mh"><span class="no">★</span><h3>毕业项目</h3><span class="tag">端到端 · 2–3 周</span></div>
+    <div class="mb">
+      <div class="cell"><div class="lb">要交什么</div>
+        <p>自选数据源 → 摄取 → 仓库分层 → dbt 建模 → 仪表盘，附 README、架构图、可复现的启动方式。</p></div>
+      <div class="cell"><div class="lb">先补这几节</div>
+        <div class="chips">
+          <a href="fund/player.html?n=19"><i>19</i>Git 最小可用集</a>
+          <a href="fund/player.html?n=21"><i>21</i>Dockerfile 与 Compose</a>
+          <a href="fund/player.html?n=27"><i>27</i>分层</a>
+          <a href="fund/player.html?n=29"><i>29</i>幂等、增量与重跑</a>
+        </div></div>
+      <div class="cell full"><div class="stuck"><b>没补会卡在：</b>项目跑在自己电脑上，别人 clone 下来起不来（没有 compose、没有 .env.example）；
+        提交历史一团乱，看不出做了什么；没有幂等，重跑就重复插入。</div></div>
+      <div class="cell full"><div class="lb">最小可用</div>
+        <p>README 里三条命令能从零跑起来：<code>git clone</code> → <code>docker compose up</code> → <code>python pipeline.py</code>。</p></div>
+    </div>
+  </div>
+
+  <h2 class="sec">可以放心跳过的<span class="ln"></span><span class="hint">别在已经会的东西上花时间</span></h2>
+  <div class="mod">
+    <div class="mb" style="grid-template-columns:1fr">
+      <div class="cell"><p style="font-size:13.4px">
+        你有 Python 和 MySQL 底子，这几节<b>扫一眼讲义、确认没有陌生名词就跳</b>：
+        第 1、2、3 节（venv / 路径 / 异常，写过程序就会）、第 10、11 节（JOIN 与 GROUP BY，MySQL 里用过）。
+        唯一值得停一下的是第 13 节窗口函数——它不在「基础 SQL」里，但 dbt 和数仓里天天用。
+      </p></div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <b>所以现在该做的：</b>打开模块 1 的视频，遇到看不懂的地方回这张表查对应节；
+    而不是先把 32 节刷完再开课——那样大概率刷到第 12 节就没劲了。<br>
+    进度都在总台统一看：<a href="hub.html" style="color:var(--c-de)">hub.html</a>。
+  </div>
+
+</div>
+</body>
+</html>
